@@ -2,15 +2,20 @@
  <Item type="Workflow Map" id="C8B7ABA2B10A46C7B3B764C45C589D07" action="add">
   <node_bg_color>       </node_bg_color>
   <node_label1_color>       </node_label1_color>
-  <node_label1_font></node_label1_font>
+  <node_label1_font />
   <node_label2_color>       </node_label2_color>
-  <node_label2_font></node_label2_font>
+  <node_label2_font />
   <node_name_color>       </node_name_color>
-  <node_name_font></node_name_font>
-  <node_size></node_size>
+  <node_name_font />
+  <node_size />
+  <process_owner keyed_name="Creator" type="Identity">
+   <Item type="Identity" action="get" select="id">
+    <name>Creator</name>
+   </Item>
+  </process_owner>
   <transition_line_color>       </transition_line_color>
   <transition_name_color>       </transition_name_color>
-  <transition_name_font></transition_name_font>
+  <transition_name_font />
   <name>Test2_workflowmap</name>
   <Relationships>
    <Item type="Workflow Map Activity" action="add">
@@ -109,7 +114,7 @@
         <is_override>0</is_override>
         <name>[none]</name>
         <related_id>025B67304F1E49C5BD262BB5BF4D50B4</related_id>
-        <segments></segments>
+        <segments />
         <sort_order>128</sort_order>
         <source_id keyed_name="Act1" type="Activity Template">625564109AE74B3C8D682A25828E4C24</source_id>
         <x>0</x>
@@ -144,7 +149,7 @@
         <is_override>0</is_override>
         <name>[none]</name>
         <related_id>50DFA6841CB34F74A6814DD70BF70685</related_id>
-        <segments></segments>
+        <segments />
         <sort_order>128</sort_order>
         <source_id keyed_name="Act2" type="Activity Template">025B67304F1E49C5BD262BB5BF4D50B4</source_id>
         <x>0</x>

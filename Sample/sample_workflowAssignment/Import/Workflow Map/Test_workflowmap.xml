@@ -2,12 +2,12 @@
  <Item type="Workflow Map" id="5C70143172714CD992AEB90D311F939A" action="add">
   <node_bg_color>       </node_bg_color>
   <node_label1_color>       </node_label1_color>
-  <node_label1_font></node_label1_font>
+  <node_label1_font />
   <node_label2_color>       </node_label2_color>
-  <node_label2_font></node_label2_font>
+  <node_label2_font />
   <node_name_color>       </node_name_color>
-  <node_name_font></node_name_font>
-  <node_size></node_size>
+  <node_name_font />
+  <node_size />
   <process_owner keyed_name="Innovator Admin" type="Identity">
    <Item type="Identity" action="get" select="id">
     <name>Innovator Admin</name>
@@ -15,7 +15,7 @@
   </process_owner>
   <transition_line_color>       </transition_line_color>
   <transition_name_color>       </transition_name_color>
-  <transition_name_font></transition_name_font>
+  <transition_name_font />
   <name>Test_workflowmap</name>
   <Relationships>
    <Item type="Workflow Map Activity" action="add">
@@ -82,7 +82,7 @@
         <is_override>0</is_override>
         <name>Go1</name>
         <related_id>B7CE070D99F54553B1AD57708D83A00D</related_id>
-        <segments></segments>
+        <segments />
         <sort_order>128</sort_order>
         <source_id keyed_name="Start" type="Activity Template">D8F228FBB1564F4C9C458D063CE13122</source_id>
         <x>35</x>
@@ -138,7 +138,7 @@
         <is_override>0</is_override>
         <name>Go3</name>
         <related_id>BBE2C12AE99141FEB0D103FD57E36F55</related_id>
-        <segments></segments>
+        <segments />
         <sort_order>256</sort_order>
         <source_id keyed_name="Act1" type="Activity Template">B7CE070D99F54553B1AD57708D83A00D</source_id>
         <x>0</x>
@@ -173,7 +173,7 @@
         <is_override>0</is_override>
         <name>Go End</name>
         <related_id>8FC0D8B795444EBEA9D0C0C816493618</related_id>
-        <segments></segments>
+        <segments />
         <sort_order>128</sort_order>
         <source_id keyed_name="Act2" type="Activity Template">83E9BC3D93E240C6B035A821F5B31DB7</source_id>
         <x>96</x>
@@ -208,7 +208,7 @@
         <is_override>0</is_override>
         <name>Go4</name>
         <related_id>E3A7B23FC07347449E6CB0D8B4221F5C</related_id>
-        <segments></segments>
+        <segments />
         <sort_order>128</sort_order>
         <source_id keyed_name="Act3" type="Activity Template">BBE2C12AE99141FEB0D103FD57E36F55</source_id>
         <x>0</x>

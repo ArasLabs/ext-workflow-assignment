@@ -24,10 +24,11 @@
     <is_versionable>0</is_versionable>
     <revisions keyed_name="Default" type="Revision">7FE395DD8B9F4E1090756A34B733D75E</revisions>
     <show_parameters_tab>1</show_parameters_tab>
+    <structure_view>tabs off</structure_view>
     <unlock_on_logout>0</unlock_on_logout>
     <use_src_access>1</use_src_access>
     <name>Test2_workflow Signoff</name>
-    <Relationships></Relationships>
+    <Relationships />
    </Item>
   </relationship_id>
   <sort_order>128</sort_order>
@@ -35,7 +36,7 @@
   <name>Test2_workflow Signoff</name>
   <Relationships>
    <Item type="Relationship View" id="08DBE1CE157D4B71A1206CC1702AD3F4" action="add">
-    <form keyed_name="Ext_Workflow_Signoffs" type="Form">738DE7AC328C41D2ACA1C3667B325941</form>
+    <form keyed_name="Workflow Signoffs" type="Form">41449A928F3341149788B4A17F164845</form>
     <related_id keyed_name="World" type="Identity">
      <Item type="Identity" action="get" select="id">
       <name>World</name>

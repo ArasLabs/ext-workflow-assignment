@@ -55,7 +55,8 @@
 	</style>
 	<script>
 		var isModalDialog = typeof (dialogArguments) !== "undefined";
-		var aras = isModalDialog ? dialogArguments.aras : top.aras;
+		var aras = isModalDialog ? dialogArguments.aras : parent.parent.aras;
+		var topWnd = parent.parent;
 	</script>
 	<!--Please don not remove AddConfigurationLink.js because it is necessary to correct work of GetHtmlForUI server method!!!-->
 	<script type="text/javascript" src="../../javascript/dialog.js"></script>
@@ -74,6 +75,7 @@
 			return tmpRes.getResult().selectSingleNode("Item");
 		}
 
+		// Add Neosystem Start
 		function getMethodFromServer(amlQuery) {
 			var tmpRes = aras.soapSend("ApplyMethod", amlQuery);
 			if (tmpRes.getFaultCode() != 0) {
@@ -82,15 +84,16 @@
 			}
 			return tmpRes.getResult().selectSingleNode("Item");
 		}
+		// Add Neosystem End
 
 		var VoteDialogArguments = isModalDialog ? dialogArguments : parent.dialogArguments;
 		var taskgrid = null;
 		clientControlsFactory.createControl("Aras.Client.Controls.Public.GridContainer", undefined, function (control) {
 			taskgrid = control;
-			taskgrid.setLayout_Experimental([{ field: "sequence", name: top.aras.getResource("", "inbasketvd.sequence"), width: "12%", styles: "text-align: center;", headerStyles: "text-align: center;" },
-				{ field: "required", name: top.aras.getResource("", "inbasketvd.required"), width: "12%", styles: "text-align: center;", headerStyles: "text-align: center;", editable: false },
-				{ field: "description", name: top.aras.getResource("", "inbasketvd.description"), width: "64%", styles: "text-align: left;", headerStyles: "text-align: center;" },
-				{ field: "complete", name: top.aras.getResource("", "inbasketvd.complete"), width: "12%", styles: "text-align: center;", headerStyles: "text-align: center;", editable: true}]);
+			taskgrid.setLayout_Experimental([{ field: "sequence", name: aras.getResource("", "inbasketvd.sequence"), width: "12%", styles: "text-align: center;", headerStyles: "text-align: center;" },
+			{ field: "required", name: aras.getResource("", "inbasketvd.required"), width: "12%", styles: "text-align: center;", headerStyles: "text-align: center;", editable: false },
+			{ field: "description", name: aras.getResource("", "inbasketvd.description"), width: "64%", styles: "text-align: left;", headerStyles: "text-align: center;" },
+			{ field: "complete", name: aras.getResource("", "inbasketvd.complete"), width: "12%", styles: "text-align: center;", headerStyles: "text-align: center;", editable: true}]);
 			getAllowedVotes();
 			populateTasksList();
 			document.getElementById("delegate").addEventListener("blur", function (e) { doSearchIdentity() }, true);
@@ -253,7 +256,7 @@
 				varID = aras.getItemProperty(actVar, "id");
 				varValItem = MyAssItem.selectSingleNode("Relationships/Item[@type='Activity Variable Value' and variable='" + varID + "']");
 				if (!varValItem) {
-					top.aras.AlertError(top.aras.getResource("", "inbasketvd.act_variable_not_found_varid", varID), undefined, undefined, top.window);
+					aras.AlertError(aras.getResource("", "inbasketvd.act_variable_not_found_varid", varID), undefined, undefined, topWnd.window);
 					return;
 				}
 
@@ -264,9 +267,9 @@
 				// column with value
 				tempTd = appendElement(varsTr, 'td', {style: "padding: 2px 0px;"} );
 				if (varType == "String" || varType == "Integer" || varType == "Float") {
-					appendElement(tempTd, 'input', { type:'text', name:varLabel, value:varValue, style:'width:200px;' });
+					appendElement(tempTd, 'input', { type:'text', name:varID, value:varValue, style:'width:200px;' });
 				} else if (varType == "Boolean") {
-					var attributes = { type:'checkbox', name:varLabel, style:'position: relative;'},
+					var attributes = { type:'checkbox', name:varID, style:'position: relative;'},
 						checkbox;
 					if (varValue == "1") {
 						attributes.checked = "checked";
@@ -274,7 +277,7 @@
 					checkbox = appendElement(tempTd, 'input', attributes);
 					appendElement(tempTd, 'label', { style:'position: relative; left: ' + (-checkbox.offsetWidth) + 'px;' });
 				} else if (varType == "List") {
-					tempSelect = appendElement(tempTd, 'select', { name:varLabel, style:'width:200px;' });
+					tempSelect = appendElement(tempTd, 'select', { name:varID, style:'width:200px;' });
 					srcListID = aras.getItemProperty(actVar, "source");
 					listVals = aras.getListValues(srcListID);
 
@@ -302,7 +305,7 @@
 			if (!MyActivity) return;
 			var paths = MyActivity.selectNodes('Relationships/Item[@type="Workflow Process Path"][not(is_complete) or is_complete!="1"]');
 			if (paths == null) {
-				top.aras.AlertError(top.aras.getResource("", "inbasketvd.act_no_allowed_votes"), undefined, undefined, top.window);
+				aras.AlertError(aras.getResource("", "inbasketvd.act_no_allowed_votes"), undefined, undefined, topWnd.window);
 				return;
 			}
 
@@ -388,7 +391,7 @@
 			if (delegate.readOnly) {
 				return;
 			}
-			var params = { aras: window.top.aras, itemtypeName: itemTypeName };
+			var params = { aras: window.aras, itemtypeName: itemTypeName };
 			params.callback = function (dlgRes) {
 				if (!dlgRes) {
 					return;
@@ -397,7 +400,7 @@
 				delegate.value = dlgRes.keyed_name;
 				lastDelegateVal = delegate.value;
 			};
-			top.aras.modalDialogHelper.show("SearchDialog", top === top.aras.getMainWindow() ? top.main : top, params);
+			aras.modalDialogHelper.show("SearchDialog", topWnd === aras.getMainWindow() ? topWnd.main : topWnd, params);
 		}
 
 		function doSearchIdentity() {
@@ -408,7 +411,7 @@
 			var item = aras.uiGetItemByKeyedName("Identity", delegate.value);
 			if (!item) {
 				if (delegate.value != "") {
-					top.aras.AlertError(top.aras.getResource("", "inbasketvd.wrong_iden"), undefined, undefined, top.window);
+					aras.AlertError(aras.getResource("", "inbasketvd.wrong_iden"), undefined, undefined, topWnd.window);
 				}
 				delegate.value = "";
 				lastDelegateVal = "";
@@ -442,19 +445,23 @@
 		function saveChanges() {
 			completeActivity("save");
 		}
+
+		// Add Neosystem Start
 		function settingAssignment() {
 			var ext_body = "<Item type='Method' action='Ext_get_Workflow_Assignment_ID'><TargetItemID>" + itemId + "</TargetItemID></Item>";
 			var ext_result = getMethodFromServer(ext_body);
 			if (!ext_result) { alert("Failed to call of Assignment screen.");return false;}
 			aras.uiShowItem("Ext_Workflow_Assignment", aras.getItemProperty(ext_result, "workflow_assignment_id"));
 		}
+		// Add Neosystem End
+
 		function cancelVote() {
 			closeDialog();
 		}
 
 		function closeDialog() {
 			if (isModalDialog) {
-				top.window.close();		
+				topWnd.window.close();		
 			} else {
 				setTimeout(function() {
 					VoteDialogArguments.dialog.onCancel();
@@ -474,7 +481,7 @@
 			var selInd = voteList.options.selectedIndex;
 			if (selInd == -1) {
 				if (mode == "complete") {
-					top.aras.AlertError(top.aras.getResource("", "inbasketvd.votelist_no_selected_items"), undefined, undefined, top.window);
+					aras.AlertError(aras.getResource("", "inbasketvd.votelist_no_selected_items"), undefined, undefined, topWnd.window);
 					return;
 				}
 				else {
@@ -483,7 +490,7 @@
 			}
 
 			if (voteList.options[selInd] == null) {
-				top.aras.AlertError(top.aras.getResource("", "inbasketvd.votelist_no_items"), undefined, undefined, top.window);
+				aras.AlertError(aras.getResource("", "inbasketvd.votelist_no_items"), undefined, undefined, topWnd.window);
 				return;
 			}
 
@@ -503,7 +510,7 @@
 			if (MyAuth == "password") {
 				if (mode == "complete") {
 					if (password.value == "") {
-						top.aras.AlertError(top.aras.getResource("", "inbasketvd.enter_pwd"), undefined, undefined, top.window);
+						aras.AlertError(aras.getResource("", "inbasketvd.enter_pwd"), undefined, undefined, topWnd.window);
 						return;
 					}
 				}
@@ -517,19 +524,19 @@
 					//     b) the required resource (e.g. IOMLogin.aspx) is not properly configured with Windows authentication on IIS
 					// (for more information see implementation of 'GetJSHandlerForUI' and related code in the corresponding logon hooks assembly).
 					if(!MD5Auth) {
-						top.aras.AlertError(top.aras.getResource("", "inbasketvd.pwd_invalid"), undefined, undefined, top.window);
+						aras.AlertError(aras.getResource("", "inbasketvd.pwd_invalid"), undefined, undefined, topWnd.window);
 						return;
 					}
 
 					var resultXML = aras.ValidateVote(MD5Auth, "password");
 					if (!resultXML) {
-						top.aras.AlertError(top.aras.getResource("", "common.an_internal_error_has_occured"), top.aras.getResource("", "inbasketvd.validatevote_resultxml_empty"), top.aras.getResource("", "common.client_side_err"), top.window);
+						aras.AlertError(aras.getResource("", "common.an_internal_error_has_occured"), aras.getResource("", "inbasketvd.validatevote_resultxml_empty"), aras.getResource("", "common.client_side_err"),aras.getMostTopWindowWithAras(window));
 						return;
 					}
 
-					var result = resultXML.selectSingleNode(top.aras.XPathResult());
+					var result = resultXML.selectSingleNode(aras.XPathResult());
 					if (result.text != "pass") {
-						top.aras.AlertError(top.aras.getResource("", "inbasketvd.pwd_invalid"), undefined, undefined, top.window);
+						aras.AlertError(aras.getResource("", "inbasketvd.pwd_invalid"), undefined, undefined, topWnd.window);
 						return;
 					}
 				}
@@ -537,7 +544,7 @@
 			else if (MyAuth == "esignature") {
 				if (mode == "complete") {
 					if (esignature.value == "") {
-						top.aras.AlertError(top.aras.getResource("", "inbasketvd.enter_esign"), undefined, undefined, top.window);
+						aras.AlertError(aras.getResource("", "inbasketvd.enter_esign"), undefined, undefined, topWnd.window);
 						return;
 					}
 				}
@@ -547,13 +554,13 @@
 				if (mode == "complete") {
 					var resultXML = aras.ValidateVote(MD5Auth, "esignature");
 					if (!resultXML) {
-						top.aras.AlertError(top.aras.getResource("", "common.an_internal_error_has_occured"), top.aras.getResource("", "inbasketvd.validatevote_resultxml_empty"), top.aras.getResource("", "common.client_side_err"));
+						aras.AlertError(aras.getResource("", "common.an_internal_error_has_occured"), aras.getResource("", "inbasketvd.validatevote_resultxml_empty"), aras.getResource("", "common.client_side_err"));
 						return;
 					}
 
-					var result = resultXML.selectSingleNode(top.aras.XPathResult());
+					var result = resultXML.selectSingleNode(aras.XPathResult());
 					if (result.text != "pass") {
-						top.aras.AlertError(top.aras.getResource("", "inbasketvd.esign_invalid"), undefined, undefined, top.window);
+						aras.AlertError(aras.getResource("", "inbasketvd.esign_invalid"), undefined, undefined, topWnd.window);
 						return;
 					}
 				}
@@ -563,7 +570,7 @@
 			{
 				if (mode == "complete") {
 					if (delegate.value == "") {
-						top.aras.AlertError(top.aras.getResource("", "inbasketvd.someone_delegate_to"), undefined, undefined, top.window);
+						aras.AlertError(aras.getResource("", "inbasketvd.someone_delegate_to"), undefined, undefined, topWnd.window);
 						return;
 					}
 				}
@@ -597,7 +604,7 @@
 				if (validate) {
 					if (is_required && !task_complete)
 					{
-						top.aras.AlertError(top.aras.getResource("", "inbasketvd.task_required", sequence), undefined, undefined, top.window);
+						aras.AlertError(aras.getResource("", "inbasketvd.task_required", sequence), undefined, undefined, topWnd.window);
 						return;
 					}
 				}
@@ -626,14 +633,14 @@
 				if (is_hidden) {
 					varValItem = MyAssItem.selectSingleNode("Relationships/Item[@type='Activity Variable Value' and variable='" + varID + "']");
 					if (!varValItem) {
-						top.aras.AlertError(top.aras.getResource("", "inbasketvd.act_variable_not_found_varid", varID), undefined, undefined, top.window);
+						aras.AlertError(aras.getResource("", "inbasketvd.act_variable_not_found_varid", varID), undefined, undefined, topWnd.window);
 						return;
 					}
 
 					value = aras.getItemProperty(varValItem, "value");
 				}
 				else {
-					elem = document.getElementsByName(varLabel)[0];
+					elem = document.getElementsByName(varID)[0];
 					if (!elem) return;
 
 					if (varType == "String" || varType == "Integer" || varType == "Float") {
@@ -641,7 +648,7 @@
 
 						if (validate) {
 							if (is_required && value == "") {
-								top.aras.AlertError(top.aras.getResource("", "inbasketvd.variable_required", varLabel), undefined, undefined, top.window);
+								aras.AlertError(aras.getResource("", "inbasketvd.variable_required", varLabel), undefined, undefined, topWnd.window);
 								return;
 							}
 						}
@@ -655,7 +662,7 @@
 						else {
 							if (validate) {
 								if (is_required && elem.options.length > 0) {
-									top.aras.AlertError(top.aras.getResource("", "inbasketvd.variable_required", varLabel), undefined, undefined, top.window);
+									aras.AlertError(aras.getResource("", "inbasketvd.variable_required", varLabel), undefined, undefined, topWnd.window);
 									return;
 								}
 							}
@@ -694,34 +701,27 @@
 			result += "</AML>";
 
 			// now OK to execute the Vote.
-			var res = top.aras.soapSend("ApplyAML", result);
+			var res = aras.soapSend("ApplyAML", result);
 			if (res.isFault()) {
 				if (res.getFaultCode() == "SOAP-ENV:Server.ItemIsLockedException") {
 					var type = res.results.selectSingleNode("//detail/*[local-name()='item']/@type").value;
 					var id = res.results.selectSingleNode("//detail/*[local-name()='item']/@id").value;
-					var showError = true;
 					if (CheckPermissionToLock(id, type)) {
-						var action = showLockItemDialog(id, type);
-						if (action == "btnUnlock") {
-							if (unlockItem(id, type)) {
+						showLockItemDialog(id, type, function (action) {
+							if (action === "btnUnlock" && unlockItem(id, type)) {
 								completeActivity(mode);
 							}
-						}
-						showError = false;
-					}
-					if (showError) {
-						top.aras.AlertError(res, undefined, undefined, window);
+						});
+						return;
 					}
 				}
-				else {
-					top.aras.AlertError(res, undefined, undefined, window);
-				}
+				aras.AlertError(res, undefined, undefined, window);
 			}
 			else {
 				if (mode == "save") {
-					top.aras.itemsCache.deleteItem(MyAssID);
+					aras.itemsCache.deleteItem(MyAssID);
 					if (needForClearItem) {
-						top.aras.itemsCache.deleteItem(itemId);
+						aras.itemsCache.deleteItem(itemId);
 					}
 				}
 				if (window.onCompleteHandler){
@@ -733,21 +733,21 @@
 		}
 
 		function CheckPermissionToLock(id, type) {
-			if (!top.aras.isAdminUser()) {
+			if (!aras.isAdminUser()) {
 				//false if temp node of is not locked by current user.
-				var itemNd = top.aras.getItemById(type, id);
-				return top.aras.isLockedByUser(itemNd);
+				var itemNd = aras.getItemById(type, id);
+				return aras.isLockedByUser(itemNd);
 			}
 			return true;
 		}
 
 		function unlockItem(id, type) {
-			var win = top.aras.uiFindWindowEx(id);
+			var win = aras.uiFindWindowEx(id);
 			if (win) {
 				return win.document.frames["tearoff_menu"].onClickMenuItem("unlock");
 			}
 			else {
-				var item = top.aras.unlockItem(id, type);
+				var item = aras.unlockItem(id, type);
 				if (!item) {
 					return false;
 				}
@@ -755,24 +755,21 @@
 			return true;
 		}
 
-		function showLockItemDialog(id, type) {
-			var itemType = top.aras.getItemTypeForClient(type, "name");
+		function showLockItemDialog(id, type, callback) {
+			var itemType = aras.getItemTypeForClient(type, "name");
 			var itemTypeLabel = itemType.getProperty("label");
-			var keyedName = top.aras.getKeyedName(id, type);
+			var keyedName = aras.getKeyedName(id, type);
 			var unlockDlgParams = {};
-			unlockDlgParams.aras = top.aras;
-			unlockDlgParams.title = top.aras.getResource("", "inbasketvd.unlock_dialog_title", itemTypeLabel);
-			unlockDlgParams.message = top.aras.getResource("", "inbasketvd.unlock_dialog_message", itemTypeLabel, keyedName);
+			unlockDlgParams.aras = aras;
+			unlockDlgParams.title = aras.getResource("", "inbasketvd.unlock_dialog_title", itemTypeLabel);
+			unlockDlgParams.message = aras.getResource("", "inbasketvd.unlock_dialog_message", itemTypeLabel, keyedName);
 			unlockDlgParams.buttons = {
-				btnUnlock: top.aras.getResource("", "common.unlock"),
-				btnCancel: top.aras.getResource("", "common.cancel")
+				btnUnlock: aras.getResource("", "common.unlock"),
+				btnCancel: aras.getResource("", "common.cancel")
 			};
+			unlockDlgParams.callback = callback;
 			unlockDlgParams.defaultButton = "btnCancel";
-			var options = {
-				dialogHeight: 150,
-				dialogWidth: 450
-			};
-			return top.aras.modalDialogHelper.show("DefaultModal", window, unlockDlgParams, options, "groupChgsDialog.html");
+			aras.modalDialogHelper.show("DefaultPopup", window.parent, unlockDlgParams, { dialogHeight: 150, dialogWidth: 450 }, "groupChgsDialog.html");
 		}
 	</script>
 	</head>
@@ -826,9 +823,10 @@
 						</td>
 							<td>
 							<div id="div_select_VoteList" class="sys_f_div_select">
-							<select id="VoteList" class="sys_f_select" size="1" width="20" onchange="onChangeVote();">
-							</select>
-							<span id="selected_option_VoteList" class="sys_f_span_select"></div>
+								<select id="VoteList" class="sys_f_select" size="1" width="20" onchange="onChangeVote();">
+								</select>
+								<span id="selected_option_VoteList" class="sys_f_span_select"></span>
+							</div>
 						</td>
 						<td align="right">
 							<b aras_ui_resource_key="inbasketvd.delegate_to"></b>&nbsp;
@@ -859,7 +857,9 @@
 		<div id="ButtonSection" class="logicalSubSection" align="center" style="padding-bottom: 15px;"> 
 			<input type="button" class="btn" id="completeButton" name="Complete" aras_ui_resource_key="inbasketvd.complete_html_value" onclick="doComplete()" />
 			<input type="button" class="btn" id="saveButtom" name="Save" aras_ui_resource_key="inbasketvd.save_changes_html_value" style="margin-left: 10px" onclick="saveChanges()" />
+			<!--Add Neosystem Start-->
 			<input type="button" class="btn" id="AssignmentButton" name="Assignment" aras_ui_resource_key="inbasketvd.assignment_html_value" style="margin-left: 10px" onclick="settingAssignment()" />
+			<!--Add Neosystem End-->
 			<input type="button" class="btn cancel_button" name="Cancel" aras_ui_resource_key="inbasketvd.cancel_html_value" style="margin-left: 10px" onclick="cancelVote()" />
 		</div>
 	</div>

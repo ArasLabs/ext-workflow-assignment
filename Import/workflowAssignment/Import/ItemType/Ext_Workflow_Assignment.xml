@@ -67,6 +67,7 @@
       <name>World</name>
      </Item>
     </role>
+    <show_ssvc>0</show_ssvc>
     <sort_order>128</sort_order>
     <source_id keyed_name="Ext_Workflow_Assignment" type="ItemType" name="Ext_Workflow_Assignment">5DE2CA314D8E4E6AA878F61F4D5158D3</source_id>
     <type>default</type>

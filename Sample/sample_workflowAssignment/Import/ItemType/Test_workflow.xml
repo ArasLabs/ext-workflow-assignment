@@ -46,6 +46,7 @@
       <name>World</name>
      </Item>
     </role>
+    <show_ssvc>0</show_ssvc>
     <sort_order>128</sort_order>
     <source_id keyed_name="Test_workflow" type="ItemType" name="Test_workflow">11F0552DB6984562AB647C4DA278B833</source_id>
     <type>default</type>

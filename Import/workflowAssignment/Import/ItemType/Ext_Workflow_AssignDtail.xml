@@ -101,11 +101,14 @@
       <name>World</name>
      </Item>
     </role>
+    <show_ssvc>0</show_ssvc>
     <sort_order>128</sort_order>
     <source_id keyed_name="Ext_Workflow_AssignDtail" type="ItemType" name="Ext_Workflow_AssignDtail">3EEAB6D10D5042938F12DC5ADB531D7B</source_id>
     <type>default</type>
    </Item>
    <Item type="Server Event" id="69B897DEB3E74783871E0B05D591C421" action="add">
+    <event_version>version_1</event_version>
+    <is_required>0</is_required>
     <related_id keyed_name="Ext_Update_identity_string" type="Method">
      <Item type="Method" action="get" select="id">
       <name>Ext_Update_identity_string</name>
@@ -116,6 +119,8 @@
     <source_id keyed_name="Ext_Workflow_AssignDtail" type="ItemType" name="Ext_Workflow_AssignDtail">3EEAB6D10D5042938F12DC5ADB531D7B</source_id>
    </Item>
    <Item type="Server Event" id="2CC26D3658AE4452922DDA639F044170" action="add">
+    <event_version>version_1</event_version>
+    <is_required>0</is_required>
     <related_id keyed_name="Ext_Update_identity_string" type="Method">
      <Item type="Method" action="get" select="id">
       <name>Ext_Update_identity_string</name>

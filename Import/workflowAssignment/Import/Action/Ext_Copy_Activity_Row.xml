@@ -1,7 +1,7 @@
 ﻿<AML>
  <Item type="Action" id="19BE251381D24AE78FDA8128746051D3" action="add">
   <item_query>&lt;Item type="{@type}" id="{@id}" levels= "1" action="get" /&gt;</item_query>
-  <label xml:lang="en">Copy Row</label>
+  <label xml:lang="en">Setting of assignment</label>
   <location>client</location>
   <method keyed_name="Ext_Open_identity_subwindow" type="Method">
    <Item type="Method" action="get" select="id">
