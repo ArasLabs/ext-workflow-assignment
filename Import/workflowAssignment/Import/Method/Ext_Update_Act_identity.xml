@@ -1,0 +1,51 @@
+﻿<AML>
+ <Item type="Method" id="07C1CF8B61DA444380D691F6BF63434F" action="add">
+  <execution_allowed_to keyed_name="World" type="Identity">A73B655731924CD0B027E4F4D5FCC0A9</execution_allowed_to>
+  <method_code><![CDATA[Innovator inn = this.getInnovator();
+Item result;
+
+string targetId = this.getProperty("AssignDtailID", "");
+//CCO.Utilities.WriteDebug("test","targetId:" + targetId);
+if(String.IsNullOrEmpty(targetId)) return inn.newError("TargetId Not Found.");
+
+string addList = this.getProperty("AddidentityList", "");
+//CCO.Utilities.WriteDebug("test","addList:" + addList);
+if(String.IsNullOrEmpty(addList)) return inn.newError("Add Identity List Not Found.");
+
+//Delete処理
+StringBuilder qry = new StringBuilder();
+qry.Append("Delete from [EXT_WORKFLOW_ADTAIL_IDENTITY] ");
+qry.Append(" where SOURCE_ID = '");
+qry.Append(targetId);
+qry.Append("' and RELATED_ID not in(select id from innovator.[Identity] where CLASSIFICATION = 'System');");
+//CCO.Utilities.WriteDebug("test","qry:" + qry.ToString());
+
+result = inn.applySQL(qry.ToString());
+if(result.isError()) return result;
+
+//Update処理
+string[] addArrayList = addList.Split(',');
+Item qry1 = this.newItem();
+Item qry2 = this.newItem();
+qry1 = inn.getItemById("Ext_Workflow_AssignDtail", targetId);
+if (qry1.isError() || qry1.isEmpty())
+{
+	return inn.newError("Does not exist [Ext_Workflow_AssignDtail] is the target ID.");
+}
+
+foreach (string stData in addArrayList) {
+	qry2 = this.newItem("Ext_Workflow_ADtail Identity", "add");
+	qry2.setProperty("related_id", stData);
+	qry1.addRelationship(qry2);
+}
+result = qry1.apply("update");
+if(result.isError()) return result;
+
+return result;
+
+
+]]></method_code>
+  <method_type>C#</method_type>
+  <name>Ext_Update_Act_identity</name>
+ </Item>
+</AML>

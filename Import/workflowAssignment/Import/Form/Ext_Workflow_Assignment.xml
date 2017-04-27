@@ -1,0 +1,91 @@
+﻿<AML>
+ <Item type="Form" id="42E2C753B8D2405E81222DC65B5FCFBC" action="add">
+  <category_form>0</category_form>
+  <height>234</height>
+  <stylesheet><![CDATA[../styles/default.css]]></stylesheet>
+  <width>699</width>
+  <name>Ext_Workflow_Assignment</name>
+  <Relationships>
+   <Item type="Body" id="E3CA439244944B97BC008024CA799425" action="add">
+    <bg_color>#FFFFFF</bg_color>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Ext_Workflow_Assignment" type="Form">42E2C753B8D2405E81222DC65B5FCFBC</source_id>
+    <Relationships>
+     <Item type="Field" id="355B7AE432E94BAD974E0421C6C72813" action="add">
+      <border_width>0</border_width>
+      <display_length_unit>px</display_length_unit>
+      <field_type>button</field_type>
+      <font_color>#000000</font_color>
+      <font_family>tahoma, arial, helvetica, sans-serif</font_family>
+      <font_size>8pt</font_size>
+      <font_weight>bold</font_weight>
+      <is_disabled>0</is_disabled>
+      <is_visible>1</is_visible>
+      <label xml:lang="en">Update</label>
+      <label_position>top</label_position>
+      <list_no_blank>0</list_no_blank>
+      <sort_order>640</sort_order>
+      <source_id keyed_name="E3CA439244944B97BC008024CA799425" type="Body">E3CA439244944B97BC008024CA799425</source_id>
+      <tab_stop>1</tab_stop>
+      <x>256</x>
+      <y>152</y>
+      <name>btn_update</name>
+      <Relationships>
+       <Item type="Field Event" id="BAD761715BC94A60AAA0C4E50E3F34D2" action="add">
+        <field_event>onclick</field_event>
+        <related_id keyed_name="Ext_Click_update_bottun" type="Method">
+         <Item type="Method" action="get" select="id">
+          <name>Ext_Click_update_bottun</name>
+         </Item>
+        </related_id>
+        <sort_order>128</sort_order>
+        <source_id keyed_name="btn_update" type="Field">355B7AE432E94BAD974E0421C6C72813</source_id>
+       </Item>
+      </Relationships>
+     </Item>
+     <Item type="Field" id="5A07F64AD605460DB8DF873FA2466008" action="add">
+      <border_width>0</border_width>
+      <display_length_unit>px</display_length_unit>
+      <field_type>html</field_type>
+      <font_color>#000000</font_color>
+      <font_family>tahoma, arial, helvetica, sans-serif</font_family>
+      <font_size>8pt</font_size>
+      <font_weight>bold</font_weight>
+      <html_code><![CDATA[<h1 color="blue">Please set the assignment to the subject of the roll.</h1>]]></html_code>
+      <is_disabled>0</is_disabled>
+      <is_visible>1</is_visible>
+      <label_position>top</label_position>
+      <list_no_blank>0</list_no_blank>
+      <sort_order>512</sort_order>
+      <source_id keyed_name="E3CA439244944B97BC008024CA799425" type="Body">E3CA439244944B97BC008024CA799425</source_id>
+      <tab_stop>1</tab_stop>
+      <x>70</x>
+      <y>80</y>
+      <name>html1</name>
+     </Item>
+     <Item type="Field" id="085BFA8EC73249BB8E2082047A2C0C94" action="add">
+      <display_length_unit>px</display_length_unit>
+      <field_type>html</field_type>
+      <html_code><![CDATA[<span id='ITEM_INFO_INTERNAL_SPAN'/>
+<script>
+  populate_ITEM_INFO_INTERNAL_SPAN = function()
+  {
+    document.getElementById('ITEM_INFO_INTERNAL_SPAN').innerHTML = top.aras.uiGetItemInfoTable(document.itemType);
+  }
+  window.addEventListener('load', populate_ITEM_INFO_INTERNAL_SPAN);
+</script>]]></html_code>
+      <is_disabled>0</is_disabled>
+      <is_visible>1</is_visible>
+      <list_no_blank>0</list_no_blank>
+      <sort_order>384</sort_order>
+      <source_id keyed_name="E3CA439244944B97BC008024CA799425" type="Body">E3CA439244944B97BC008024CA799425</source_id>
+      <tab_stop>0</tab_stop>
+      <x>0</x>
+      <y>0</y>
+      <name>item_info</name>
+     </Item>
+    </Relationships>
+   </Item>
+  </Relationships>
+ </Item>
+</AML>

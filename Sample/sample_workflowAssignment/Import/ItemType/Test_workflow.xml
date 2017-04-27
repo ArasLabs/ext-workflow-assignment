@@ -1,0 +1,91 @@
+﻿<AML>
+ <Item type="ItemType" id="11F0552DB6984562AB647C4DA278B833" action="add">
+  <allow_private_permission>1</allow_private_permission>
+  <auto_search>1</auto_search>
+  <default_page_size>25</default_page_size>
+  <enforce_discovery>1</enforce_discovery>
+  <hide_where_used>0</hide_where_used>
+  <implementation_type>table</implementation_type>
+  <instance_data>TEST_WORKFLOW</instance_data>
+  <is_dependent>0</is_dependent>
+  <is_relationship>0</is_relationship>
+  <is_versionable>0</is_versionable>
+  <large_icon>../Images/Help.svg</large_icon>
+  <open_icon>../Images/Help.svg</open_icon>
+  <revisions keyed_name="Default" type="Revision">7FE395DD8B9F4E1090756A34B733D75E</revisions>
+  <show_parameters_tab>1</show_parameters_tab>
+  <structure_view>tab view</structure_view>
+  <unlock_on_logout>0</unlock_on_logout>
+  <use_src_access>0</use_src_access>
+  <name>Test_workflow</name>
+  <Relationships>
+   <Item type="Property" id="FA8155A661C641F1A93804244A15DAE8" action="add">
+    <column_alignment>left</column_alignment>
+    <data_source keyed_name="CAD Document">14CA7BC35E2642FA9094B683FF202A56</data_source>
+    <data_type>sequence</data_type>
+    <is_hidden>0</is_hidden>
+    <is_hidden2>0</is_hidden2>
+    <is_indexed>0</is_indexed>
+    <is_keyed>0</is_keyed>
+    <is_multi_valued>0</is_multi_valued>
+    <is_required>0</is_required>
+    <keyed_name_order>1</keyed_name_order>
+    <order_by>1</order_by>
+    <range_inclusive>0</range_inclusive>
+    <readonly>0</readonly>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Test_workflow" type="ItemType" name="Test_workflow">11F0552DB6984562AB647C4DA278B833</source_id>
+    <track_history>0</track_history>
+    <name>test_number</name>
+   </Item>
+   <Item type="View" id="891D98FC1A004884B2A7E9BF097BC6CE" action="add">
+    <client>js</client>
+    <related_id keyed_name="Test_workflow" type="Form">BDC33C0F76E043E6B4279914CEA426F9</related_id>
+    <role keyed_name="World" type="Identity">
+     <Item type="Identity" action="get" select="id">
+      <name>World</name>
+     </Item>
+    </role>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Test_workflow" type="ItemType" name="Test_workflow">11F0552DB6984562AB647C4DA278B833</source_id>
+    <type>default</type>
+   </Item>
+   <Item type="Item Action" id="A279EAD6B31F4C1BB446966AD0288C5F" action="add">
+    <related_id keyed_name="Ext_Open_AssignmentWindow" type="Action">45FA11B8A2134800BBD6D6DC68FE1FFE</related_id>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Test_workflow" type="ItemType" name="Test_workflow">11F0552DB6984562AB647C4DA278B833</source_id>
+   </Item>
+   <Item type="Allowed Workflow" id="70BB29A116DB4A82AA1E86A42510C9AE" action="add">
+    <is_default>1</is_default>
+    <related_id keyed_name="Test_workflowmap" type="Workflow Map">5C70143172714CD992AEB90D311F939A</related_id>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Test_workflow" type="ItemType" name="Test_workflow">11F0552DB6984562AB647C4DA278B833</source_id>
+   </Item>
+   <Item type="TOC Access" id="CA5AD62CBEDE4EFEABAB470E1ED6DD6B" action="add">
+    <related_id keyed_name="World" type="Identity">
+     <Item type="Identity" action="get" select="id">
+      <name>World</name>
+     </Item>
+    </related_id>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Test_workflow" type="ItemType" name="Test_workflow">11F0552DB6984562AB647C4DA278B833</source_id>
+   </Item>
+   <Item type="Can Add" id="D4D4AC0372614E5B88F16ADBF95BAD71" action="add">
+    <can_add>1</can_add>
+    <related_id keyed_name="World" type="Identity">
+     <Item type="Identity" action="get" select="id">
+      <name>World</name>
+     </Item>
+    </related_id>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Test_workflow" type="ItemType" name="Test_workflow">11F0552DB6984562AB647C4DA278B833</source_id>
+   </Item>
+   <Item type="Allowed Permission" id="5D9B04F2AE584ED495E4F1FA78366D2F" action="add">
+    <is_default>1</is_default>
+    <related_id keyed_name="World Can Everything" type="Permission">A818A2E8A92142EAA488B998C6FD2CAC</related_id>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Test_workflow" type="ItemType" name="Test_workflow">11F0552DB6984562AB647C4DA278B833</source_id>
+   </Item>
+  </Relationships>
+ </Item>
+</AML>

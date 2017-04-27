@@ -1,0 +1,51 @@
+﻿<AML>
+ <Item type="RelationshipType" id="5C774104CD6E402881B4E4A15B7B7199" action="add" dependencyLevel="0">
+  <auto_search>1</auto_search>
+  <behavior>float</behavior>
+  <copy_permissions>0</copy_permissions>
+  <create_related>0</create_related>
+  <hide_in_all>0</hide_in_all>
+  <inc_rel_key_name>1</inc_rel_key_name>
+  <inc_related_key_name>1</inc_related_key_name>
+  <is_list_type>0</is_list_type>
+  <new_show_related>0</new_show_related>
+  <related_notnull>0</related_notnull>
+  <related_option>2</related_option>
+  <relationship_id keyed_name="Test2_workflow Signoff" type="ItemType" name="Test2_workflow Signoff">
+   <Item type="ItemType" id="70D8C3972035485DA7C7DEDEAFA5DFBB" action="add">
+    <allow_private_permission>1</allow_private_permission>
+    <auto_search>0</auto_search>
+    <enforce_discovery>0</enforce_discovery>
+    <hide_where_used>0</hide_where_used>
+    <implementation_type>table</implementation_type>
+    <instance_data>TEST2_WORKFLOW_SIGNOFF</instance_data>
+    <is_dependent>0</is_dependent>
+    <is_relationship>1</is_relationship>
+    <is_versionable>0</is_versionable>
+    <revisions keyed_name="Default" type="Revision">7FE395DD8B9F4E1090756A34B733D75E</revisions>
+    <show_parameters_tab>1</show_parameters_tab>
+    <unlock_on_logout>0</unlock_on_logout>
+    <use_src_access>1</use_src_access>
+    <name>Test2_workflow Signoff</name>
+    <Relationships></Relationships>
+   </Item>
+  </relationship_id>
+  <sort_order>128</sort_order>
+  <source_id keyed_name="Test2_workflow" type="ItemType" name="Test2_workflow">EA96A24B52234618BF631A366400A17C</source_id>
+  <name>Test2_workflow Signoff</name>
+  <Relationships>
+   <Item type="Relationship View" id="08DBE1CE157D4B71A1206CC1702AD3F4" action="add">
+    <form keyed_name="Ext_Workflow_Signoffs" type="Form">738DE7AC328C41D2ACA1C3667B325941</form>
+    <related_id keyed_name="World" type="Identity">
+     <Item type="Identity" action="get" select="id">
+      <name>World</name>
+     </Item>
+    </related_id>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Test2_workflow Signoff" type="RelationshipType">5C774104CD6E402881B4E4A15B7B7199</source_id>
+   </Item>
+  </Relationships>
+ </Item>
+ <Item type="View" action="delete" where="source_id='70D8C3972035485DA7C7DEDEAFA5DFBB'" />
+ <Item type="Form" action="delete" where="name='Test2_workflow Signoff'" />
+</AML>

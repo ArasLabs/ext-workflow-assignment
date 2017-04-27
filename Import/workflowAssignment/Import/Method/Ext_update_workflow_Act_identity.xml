@@ -1,0 +1,80 @@
+﻿<AML>
+ <Item type="Method" id="AA58893492D3495F970B0D2697ABC927" action="add">
+  <execution_allowed_to keyed_name="World" type="Identity">A73B655731924CD0B027E4F4D5FCC0A9</execution_allowed_to>
+  <method_code><![CDATA[#region Aras Innovator Method本体
+
+            Item qry1 = this.newItem();
+            Item qry2 = this.newItem();
+            Item qry3 = this.newItem();
+            StringBuilder sql = new StringBuilder();
+            StringBuilder str_where = new StringBuilder();
+            Item result = this.newItem();
+            Innovator inn = this.getInnovator();
+
+            //パラメータの取得
+            string targetId =  this.getProperty("targetID", "");
+            string processId = this.getProperty("processID", "");
+
+            //CCO.Utilities.WriteDebug("test","targetId:" + targetId);
+            //CCO.Utilities.WriteDebug("test","processId:" + processId);
+            if(String.IsNullOrEmpty(targetId)) return inn.newError("TargetId Not Found.");
+            if(String.IsNullOrEmpty(processId)) return inn.newError("processId Not Found.");
+
+            //Assignment情報の取得(Active, Penndingのみ)
+            sql.Append("select a.EXT_ACTIVITY, ai.RELATED_ID as EXT_IDENTITY, act.STATE from [EXT_WORKFLOW_ASSIGN_ACTIVITY] aa ");
+            sql.Append(" inner join [EXT_WORKFLOW_ASSIGNDTAIL] a ");
+            sql.Append(" on aa.RELATED_ID = a.id ");
+            sql.Append(" inner join [EXT_WORKFLOW_ADTAIL_IDENTITY] ai ");
+            sql.Append(" on a.id = ai.SOURCE_ID ");
+            sql.Append(" inner join [ACTIVITY] act ");
+            sql.Append(" on a.EXT_ACTIVITY = act.id ");
+            sql.Append("where aa.SOURCE_ID = '");
+            sql.Append(targetId);
+            sql.Append("' and act.STATE not in('Cancelled', 'Closed') order by aa.SORT_ORDER,a.EXT_ACTIVITY,ai.RELATED_ID ");
+            //CCO.Utilities.WriteDebug("test", "sql:" + sql.ToString());
+            result = inn.applySQL(sql.ToString());
+            //CCO.Utilities.WriteDebug("test", "result SQL:" + result.ToString());
+            if (result.isError()) { return this; }
+          
+			//Activity Assignmentの削除
+			if(result.getItemCount() !=0){
+				for (int i = 0; i < result.getItemCount(); i++)
+				{
+					Item act = result.getItemByIndex(i);
+					if(i!=0){str_where.Append(",");}
+					str_where.Append("'" + act.getProperty("ext_activity", "") + "'");
+		 		}
+				
+				
+                Item dasgn = this.newItem("Activity Assignment", "delete");
+				dasgn.setAttribute("where", "source_id in (" + str_where.ToString() + ")");
+                //dasgn.setProperty("source_id", act.getProperty("ext_activity", ""));
+                Item dres = dasgn.apply();
+                //CCO.Utilities.WriteDebug("test", "dasgn:" + dasgn.ToString());
+                if (dres.isError()) return inn.newError("Failed Deleting Activity.");
+                //CCO.Utilities.WriteDebug("test", "dres SQL:" + dres.ToString());
+			}
+
+          for (int i = 0; i < result.getItemCount(); i++)
+            {
+                Item act = result.getItemByIndex(i);
+                
+                //Activity Assignmentの更新
+                Item asgn = this.newItem("Activity Assignment", "add");
+                asgn.setPropertyAttribute("locked_by_id", "is_null", "1");
+                asgn.setProperty("source_id", act.getProperty("ext_activity", ""));
+                asgn.setProperty("related_id", act.getProperty("ext_identity", ""));
+                asgn.setProperty("voting_weight", "100");
+                Item res = asgn.apply();
+                //CCO.Utilities.WriteDebug("test", "asgn:" + asgn.ToString());
+                if (res.isError()) return inn.newError("Failed Updating Activity.");
+                //CCO.Utilities.WriteDebug("test", "res SQL:" + res.ToString());
+            }
+
+            return this;
+
+            #endregion]]></method_code>
+  <method_type>C#</method_type>
+  <name>Ext_update_workflow_Act_identity</name>
+ </Item>
+</AML>

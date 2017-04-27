@@ -1,0 +1,26 @@
+﻿<AML>
+ <Item type="Method" id="92B54A6526AF4F95B057E8509BF09199" action="add">
+  <execution_allowed_to keyed_name="World" type="Identity">A73B655731924CD0B027E4F4D5FCC0A9</execution_allowed_to>
+  <method_code><![CDATA[
+if(!top.aras.confirm("set the assignment set to the previous information. Are you sure?")){
+	//NG
+	return true;
+}
+
+var targetID = parent.thisItem.getID();
+var processId = parent.thisItem.getProperty("ext_workflow_process", "");
+
+//Workflow割り当ての情報作成
+var body = "<targetID>" + targetID+ "</targetID><processID>" + processId+ "</processID>";
+
+var res = top.aras.applyMethod("Ext_update_workflow_Act_identity", body);
+if (!res) {return false;}
+
+//return true;
+// ダイアログ表示
+top.aras.AlertSuccess("Success Assignment.");
+]]></method_code>
+  <method_type>JavaScript</method_type>
+  <name>Ext_Click_update_bottun</name>
+ </Item>
+</AML>

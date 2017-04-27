@@ -1,0 +1,768 @@
+﻿<!DOCTYPE HTML>
+<!-- (c) Copyright by Aras Corporation, 2004-2013. -->
+<html>
+	<head>
+ 		<title></title>
+ 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+ 		<style type="text/css">
+			@import "../../javascript/dojo/resources/dojo.css";
+			@import "../../javascript/dijit/themes/claro/claro.css";
+			@import "../../javascript/dojox/grid/resources/claroGrid.css";
+			@import "../../javascript/include.aspx?classes=common.css";
+			@import "../../styles/default.css";
+
+			html,body{
+				overflow: hidden;
+				width : 100%;
+				height : 100%;
+				margin : 0px;
+				padding : 0px;
+				border : none;
+ 			}
+			table {
+				font-family: tahoma, arial, helvetica, sans-serif; 
+				font-size: 11px;
+			}
+
+			fieldset{
+ 				padding-left: 8px;
+ 				padding-right: 8px;
+ 				padding-top: 4px;
+ 				padding-bottom: 7px;
+ 				margin-bottom: 5px;
+ 				margin-left: 10px;
+				border: 1px solid black;
+ 			}
+			input[type="checkbox"].arasCheckboxOrRadio{
+				display: inline;
+				disabled: disabled;
+			}
+			#main {
+				width: 100%;
+				height: 100%;
+			}
+			#headArea {
+				background-color: buttonface;
+				width: 100%;
+				height: 55px;
+			}
+			#gridTD {
+				position: fixed;
+				top: 55px;
+				bottom: 0px;
+				width: 100%;
+				overflow: auto;
+			}
+		</style>
+		<script type="text/javascript" src="../../javascript/include.aspx?classes=/dojo.js" data-dojo-config="isDebug: false, parseOnLoad: false, baseUrl:'../../javascript/dojo'"></script>
+		<script type="text/javascript" src="../../javascript/include.aspx?classes=XmlDocument"></script>
+		<script type="text/javascript" src="../../Solutions/Project/javascript/gantt_methods.js"></script>
+		<script type="text/javascript" src="../../Solutions/Project/javascript/scheduling_methods.js"></script>
+		<script type="text/javascript">
+			var grid = null;
+
+			clientControlsFactory.createControl("Aras.Client.Controls.Public.GridContainer", undefined, function(control) {
+				grid = control;
+				clientControlsFactory.on(grid, {
+					"gridDoubleClick": onDoubleClick,
+					"gridRowSelect": updateControlsState,
+					"gridMenuInit": onGridMenuShow
+				});
+
+				grid.contexMenu_Experimental.addRange(ContextMenu);
+				menuFrame.setActiveToolbar("inbasket_toolbar");
+				initInBasketFunc();
+				initInBasketUI();
+			});
+		</script>
+	</head>
+	<body class="claro">
+	<script type="text/javascript">
+	var menuFrame = top.main.menu,
+		currViewMode,
+		myxml, 
+		isFirstTime = true, 
+		pos = 0,
+		activitiesCollection = null,
+		selRowId;
+
+	function updateCurrentViewMode() {
+		var actCheckbox = document.getElementById("Active");
+		var pendCheckbox = document.getElementById("Pending");
+		if (actCheckbox.checked && pendCheckbox.checked) {
+			currViewMode = "Both"
+			setControlState("ShowBoth", true);
+		}
+		else if (actCheckbox.checked) {
+			currViewMode = "Active";
+			setControlState("ShowActive", true);
+		}
+		else if (pendCheckbox.checked) {
+			currViewMode = "Pending";
+			setControlState("ShowPending", true);
+		}
+		else currViewMode = "";
+	}
+
+	function setControlEnabled(control, isEnable) {
+		isEnable = isEnable == undefined ? true : Boolean(isEnable);
+		if (Array.isArray(control)) {
+			for (var i = 0; i < control.length; i++) {
+				menuFrame.setControlEnabled(control[i], isEnable);
+			}
+		} 
+		else {
+			menuFrame.setControlEnabled(control, isEnable);
+		}
+	}
+
+	function setControlState(ctrlName, b) {
+		b = b == undefined ? true : Boolean(b);
+
+		var bShowActive = (ctrlName == "ShowActive") && b;
+		var bShowPending = (ctrlName == "ShowPending") && b;
+		var bShowBoth = (ctrlName == "ShowBoth") && b;
+		document.getElementById("Active").checked = bShowActive;
+		document.getElementById("Pending").checked = bShowPending;
+
+		if (bShowBoth) {
+			document.getElementById("Active").checked = true;
+			document.getElementById("Pending").checked = true;
+		}
+	}
+
+	var ContextMenu = [
+		{ name: top.aras.getResource("", "inbasket.cntxt_menu.view_mode"),
+			subMenu: [
+				{ id: "ShowActive", name: top.aras.getResource("", "inbasket.cntxt_menu.active"), checked: false,
+					onClick: function () {
+						setControlState("ShowActive", true);
+						currViewMode = "Active";
+						populateActivityGrid();
+					}
+				},
+				{ id: "ShowPending", name: top.aras.getResource("", "inbasket.cntxt_menu.pending"), checked: false,
+					onClick: function () {
+						setControlState("ShowPending", true);
+						currViewMode = "ShowPending";
+						populateActivityGrid();
+					}
+				},
+				{ id: "ShowBoth", name: top.aras.getResource("", "inbasket.cntxt_menu.both"), checked: false,
+					onClick: function () {
+						setControlState("ShowBoth", true);
+						currViewMode = "ShowBoth";
+						populateActivityGrid();
+					}
+				}
+			]
+		},
+		{ separator: true },
+		{ id: "ClaimActivity", name: top.aras.getResource("", "common.lock"), onClick: onClaimActivityCommand },
+		{ id: "UnclaimActivity", name: top.aras.getResource("", "common.unlock"), onClick: onUnclaimActivityCommand },
+		{ separator: true, id: "ClaimSeparator" },
+		{ id: "ViewAttached", name: top.aras.getResource("", "common.view"),
+			onClick: function () {
+				onViewAttachedCommand(false);
+			}
+		},
+		{ id: "EditAttached", name: top.aras.getResource("", "common.edit"),
+			//Possible for workflow, project, action
+			onClick: function () {
+				onViewAttachedCommand(true);
+			}
+		},
+		{ separator: true },
+		{ id: "ViewProcess", name: top.aras.getResource("", "inbasket.cntxt_menu.view_gantt_chart"), onClick: onViewProcessCommand },
+		{ id: "ViewActivity", name: top.aras.getResource("", "inbasket.cntxt_menu.view_act"),
+			onClick: function (rowID) {
+				var activityType = grid.getUserData(rowID, "activityType");
+				var activityID = grid.getUserData(rowID, "activityID");
+				var selItem = top.aras.getItemFromServer(activityType, activityID);
+
+				if (selItem) {
+					selItem = selItem.node;
+				} 
+				else {
+					populateActivityGrid();
+					return;
+				}
+
+				var itemTypeNd = top.aras.getItemTypeDictionary(activityType).node;
+				var par = { aras: top.aras,
+					item: selItem,
+					Item: top.Item,
+					isEditMode: false,
+					itemID: activityID,
+					itemTypeName: activityType,
+					keyed_name: top.aras.getKeyedNameEx(selItem),
+					noTabs: false,
+					opener: window,
+					itemType: itemTypeNd,
+					itemTypeLabel: top.aras.getItemProperty(itemTypeNd, "label"),
+					scriptsURL: top.aras.getScriptsURL(),
+					dbName: top.aras.getDatabase(),
+					tabsToDisable: ["Time Record"]
+				};
+
+				if (itemTypeNd) {
+					var formNd = itemTypeNd.selectSingleNode("Relationships/Item[@type='View']/related_id/Item[@type='Form' and name='Activity2']");
+					var formNd = top.aras.getFormForDisplay(formNd.getAttribute("id"));
+					if (formNd && formNd.node) {
+						var w = parseInt(top.aras.getItemProperty(formNd.node, "width"));
+						var h = parseInt(top.aras.getItemProperty(formNd.node, "height"));
+						if (h) h = (h * 100) / 60;
+					}
+				}
+
+				var options = {
+						dialogHeight: h || 650,
+						dialogWidth: w || 885,
+						resizable: true
+					};
+				top.aras.modalDialogHelper.show("DefaultModal", window, par, options, "../Solutions/Project/scripts/modalViewEditWrapper.html");
+			}
+		},
+		{ separator: true },
+		{ id: "Vote", name: top.aras.getResource("", "inbasket.cntxt_menu.update_act"), onClick: onDoubleClick }
+	];
+
+	function onVoteCommand() {
+		onDoubleClick();
+	}
+
+	//View process command: only for Workflow and Project
+	function onViewProcessCommand(rowID) {
+		rowID = rowID || grid.getSelectedId();
+		var selectedType = getType4SelectedRow(rowID);
+		switch (selectedType) {
+			case "workflow":
+				var params = { aras: top.aras,
+					processID: grid.getUserData(rowID, "workflowProcessId"),
+					processName: grid.cells(rowID, 2).getValue()
+				};
+				var aWindow = top.aras.getMainWindow().document.getElementById("main").contentWindow;
+				top.aras.modalDialogHelper.show("DefaultPopup", aWindow, params, { dialogHeight: 400, dialogWidth: 850, resizable: "yes" }, "WorkflowProcess/WflProcessViewer.aspx");
+				break;
+			case "project":
+				top.aras.getItemById("Project", grid.getUserData(rowID, "projectID"), 0) ? showGanttChart() : populateActivityGrid();
+				break;
+		}
+	}
+
+	function onClaimActivityCommand(rowID) {
+		var assignmentID = getAssignmentId(rowID);
+		if (assignmentID && top.aras.lockItem(assignmentID, "Activity Assignment")) {
+			updateGrid("lock");
+		}
+	}
+
+	function onUnclaimActivityCommand(rowID) {
+		var assignmentID = getAssignmentId(rowID);
+		if (assignmentID && top.aras.unlockItem(assignmentID, "Activity Assignment")) {
+			updateGrid("unlock");
+		}
+	}
+
+	function onGridMenuShow(rowID) {
+		var menu = grid.getMenu_Experimental();
+
+		var selectedRowType = getType4SelectedRow(rowID);
+		menu.setChecked("ShowActive", ("Active" === currViewMode));
+		menu.setChecked("ShowPending", ("Pending" === currViewMode));
+		menu.setChecked("ShowBoth", ("Both" === currViewMode));
+
+		if ("workflow" === selectedRowType) {
+			var obj = getLockUnlockStatus4WorkflowAsmnt(rowID);
+			showClaimSection(obj.canLock, obj.canUnlock);
+
+			var itmType = top.aras.getItemTypeForClient(grid.getUserData(rowID, "attachedTypeId"), "id");
+			var attachedLabel = itmType.getProperty("label") || itmType.getProperty("name");
+
+			var itmNd = top.aras.getItemById(grid.getUserData(rowID, "attachedType"), grid.getUserData(rowID, "attachedId"), 0);
+			if (!top.aras.isLocked(itmNd)) {
+				menu.setLabel("ViewAttached", top.aras.getResource("", "common.view") + " " + attachedLabel);
+				menu.setHide("ViewAttached", false);
+			} 
+			else {
+				menu.setHide("ViewAttached", true);
+			}
+			menu.setLabel("EditAttached", top.aras.getResource("", "common.edit") + " " + attachedLabel);
+			menu.setLabel("ViewProcess", top.aras.getResource("", "inbasket.cntxt_menu.view_workflow"));
+			menu.setHide("ViewProcess", false);
+			menu.setHide("ViewActivity", true);
+			menu.setLabel("Vote", top.aras.getResource("", "inbasket.cntxt_menu.update_act"));
+
+		}
+		else if (selectedRowType == "project") {
+			hideClaimSection();
+			var itmType = top.aras.getItemTypeForClient("Project", "name");
+			var attachedLabel = itmType.getProperty("label") || itmType.getProperty("name");
+
+			var itmNd = top.aras.getItemById("Project", grid.getUserData(rowID, "projectID"), 0);
+			if (!top.aras.isLocked(itmNd)) {
+				menu.setLabel("ViewAttached", top.aras.getResource("", "common.view") + " " + attachedLabel);
+				menu.setHide("ViewAttached", false);
+			} 
+			else {
+				menu.setHide("ViewAttached", true);
+			}
+			menu.setLabel("EditAttached", top.aras.getResource("", "common.edit") + " " + attachedLabel);
+			menu.setLabel("ViewProcess", top.aras.getResource("", "inbasket.cntxt_menu.view_gantt_chart"));
+			menu.setHide("ViewProcess", false);
+			menu.setHide("ViewActivity", false);
+			menu.setLabel("Vote", top.aras.getResource("", "inbasket.cntxt_menu.update_act"));
+
+		}
+		else if (selectedRowType == "action") {
+			hideClaimSection();
+			var itmType = top.aras.getItemTypeForClient(grid.getUserData(rowID, "actionSourceType"), "name");
+			var attachedLabel = itmType.getProperty("label") || itmType.getProperty("name");
+
+			var itmNd = top.aras.getItemById(grid.getUserData(rowID, "actionSourceType"), grid.getUserData(rowID, "actionSourceID"), 0);
+			if (!top.aras.isLocked(itmNd)) {
+				menu.setLabel("ViewAttached", top.aras.getResource("", "common.view") + " " + attachedLabel);
+				menu.setHide("ViewAttached", false);
+			} 
+			else {
+				menu.setHide("ViewAttached", true);
+			}
+			menu.setLabel("EditAttached", top.aras.getResource("", "common.edit") + " " + attachedLabel);
+			menu.setHide("ViewProcess", true);
+			menu.setHide("ViewActivity", true);
+			menu.setLabel("Vote", top.aras.getResource("", "inbasket.cntxt_menu.update_action"));
+		}
+
+		function showClaimSection(canLock, canUnlock) {
+			menu.setHide("ClaimActivity", !canLock);
+			menu.setHide("UnclaimActivity", !canUnlock);
+			menu.setHideSeparator("ClaimSeparator", false);
+		}
+
+		function hideClaimSection() {
+			menu.setHide("ClaimActivity", true);
+			menu.setHide("UnclaimActivity", true);
+			menu.setHideSeparator("ClaimSeparator", true);
+		}
+	}
+
+	function enableCheckboxes() {
+		var arr = ["Active", "Pending", "wfl_act", "project_act", "action_items"];
+		for (var i = 0; i < arr.length; i++) {
+			document.getElementById(arr[i]).disabled = false;
+		}
+	}
+
+	function updateControlsState(rowID) {
+		rowID = rowID || grid.getSelectedId();
+		if (!rowID) {
+			setControlEnabled(["ClaimActivity", "UnclaimActivity", "ViewAttached", "EditAttached", "ViewProcess", "Vote"], false);
+			return;
+		}
+
+		var claimFlg = false;
+		var unlockFlg = false;
+		var itemIsLocked = false;
+		var viewProc = false;
+		var activityType = getType4SelectedRow(rowID);
+		var itmNd = null;
+
+		switch (activityType) {
+			case "workflow":
+				var obj = getLockUnlockStatus4WorkflowAsmnt(rowID);
+				claimFlg = obj.canLock;
+				unlockFlg = obj.canUnlock;
+
+				itmNd = top.aras.getItemById(grid.getUserData(rowID, "attachedType"), grid.getUserData(rowID, "attachedId"), 0);
+				viewProc = true;
+				break;
+			case "project":
+				itmNd = top.aras.getItemById("Project", grid.getUserData(rowID, "projectID"), 0);
+				viewProc = true;
+				break;
+			case "action":
+				itmNd = top.aras.getItemById(grid.getUserData(rowID, "actionSourceType"), grid.getUserData(rowID, "actionSourceID"), 0);
+				break;
+		}
+
+		if (itmNd) {
+			itemIsLocked = top.aras.isLocked(itmNd);
+		}
+
+		setControlEnabled("ClaimActivity", claimFlg);
+		setControlEnabled("UnclaimActivity", unlockFlg);
+		setControlEnabled("ViewAttached", !itemIsLocked);
+		setControlEnabled("ViewProcess", viewProc);
+		setControlEnabled(["EditAttached", "Vote"], true);
+	}
+
+	function getLockUnlockStatus4WorkflowAsmnt(rowID) {
+		var lockType = grid.getUserData(rowID, "lockType");
+		return { canLock: ("0" == lockType), canUnlock: ("1" == lockType) };
+	}
+
+	function initInBasketUI() {
+		setControlState("Show" + currViewMode, true);
+		setControlEnabled(["export2Excel", "export2Word", "refresh"], true);
+		enableCheckboxes();
+	}
+
+	function initInBasketFunc() {
+		loadSettings();
+		if (currViewMode == "Both") {
+			document.getElementById("Active").checked = true;
+			document.getElementById("Pending").checked = true;
+		}
+		else if (currViewMode != "") {
+			document.getElementById(currViewMode).checked = true;
+		}
+		populateActivityGrid();
+	}
+
+	function populateActivityGrid() {
+		updateCurrentViewMode();
+		emptygrid();
+		var showWorkflow = 0,
+			showProject = 0,
+			showAction = 0,
+			saveArray = [];
+		if (document.getElementById("wfl_act").checked) showWorkflow = 1;
+		if (document.getElementById("project_act").checked) {
+			showProject = 1;
+		}
+		else if (!ProjectSolutionLoadedInDB()) {
+			showProject = -1;
+		}
+		if (document.getElementById("action_items").checked) {
+			showAction = 1;
+		}
+		saveArray.push(showWorkflow, showProject, showAction, currViewMode);
+		top.aras.setPreferenceItemProperties("Core_GlobalLayout", null, { core_in_basket_history: saveArray.join("|") });
+
+		if (currViewMode != "" && (showWorkflow == 1 || showProject == 1 || showAction == 1)) {
+			var tasks = top.aras.getAssignedTasks(currViewMode, showWorkflow, showProject, showAction);
+			grid.InitXML_Experimental(tasks);
+			grid.setSelectedRow(selRowId, false);
+			updateControlsState(getSelectedRowID());
+		}
+		else {
+			emptygrid();
+			updateControlsState(getSelectedRowID());
+			return;
+		}
+	}
+
+	function emptygrid() {
+		grid.RemoveAllRows();
+	}
+
+	function onRefreshCommand() {
+		populateActivityGrid();
+	}
+
+	function onDoubleClick(rowID) {
+		rowID = rowID || grid.getSelectedId();
+		selRowId = rowID;
+		var activityID = getActivityId(rowID);
+		var params;
+		var options, callbacks;
+		switch (grid.getUserData(rowID, "assignmentType")) {
+			case "workflow":
+				params = { 
+					aras: top.aras,
+					activity: top.aras.getItemById("Activity", activityID, 1),
+					wflName: grid.items_Experimental.get(rowID, "value", "Workflow/Project"),
+					wflId: grid.getUserData(rowID, "workflowProcessId"),
+					assignmentId: getAssignmentId(rowID),
+					itemId: grid.getUserData(rowID, "attachedId"),
+					parent: "InBasket"
+				};
+				options = { 
+					dialogWidth: 700,
+					dialogHeight: 550,
+					resizable: true,
+					scroll: true 
+				};
+				
+				callbacks = {			
+					oncancel: populateActivityGrid
+				};
+				top.aras.modalDialogHelper.show("DefaultPopup", top.aras.getMainWindow().main, params, options, "InBasket/InBasket-VoteDialog.aspx", callbacks);
+				break;
+			case "project":
+				var acwFormNd = top.aras.getFormForDisplay("Activity Completion Worksheet", "by-name", false);
+				if (acwFormNd && acwFormNd.node) {
+					var w = parseInt(top.aras.getItemProperty(acwFormNd.node, "width"));
+					var h = parseInt(top.aras.getItemProperty(acwFormNd.node, "height"));
+				}
+				//Open Activity Completion Form
+				params = [window, grid.getUserData(rowID, "activityID")];
+				params.aras = top.aras;
+				params.resultHandler = populateActivityGrid;
+				var actNd = top.aras.getItemById("Activity2", params[1], 0);
+				if (actNd) {
+					options = {
+						dialogHeight: h ? h +  20/*statusbar*/ + 31 /*toolbar*/ + 28 /*title bar*/ + 25 /*safe-interval between form and relationships*/ : 600,
+						dialogWidth: w || 700,
+						resizable: true
+					};
+					top.aras.modalDialogHelper.show("DefaultPopup", top.aras.getMainWindow().main, params, options, "../Solutions/Project/scripts/ActivityCompletionWorksheet/ACWDialog.html");
+				}
+				break;
+			case "action":
+				//open "Action editor"
+				if (!activityID) return;
+				params = { aras: top.aras,
+					itemId: activityID,
+					itemName: grid.getUserData(rowID, "itemName"),
+					itemComments: grid.getUserData(rowID, "itemComments"),
+					itemParent: grid.getUserData(rowID, "actionSourceName"),
+					itemParentId: grid.getUserData(rowID, "actionSourceID"),
+					itemParentType: grid.getUserData(rowID, "actionSourceType"),
+					itemDueDate: grid.getUserData(rowID, "due_date"),
+					part_number: grid.getUserData(rowID, "part_number")
+				};
+
+				var result = top.aras.getItemFromServer("FMEA Action", activityID, "locked_by_id", 0);
+				if (result && result.node) {
+					if (result.getProperty("locked_by_id") != undefined) {
+						lockedNode = result.node.selectSingleNode("locked_by_id");
+						if (result.getProperty("locked_by_id") != top.aras.getUserID()) {
+							top.aras.AlertError("Item is locked by user " + lockedNode.getAttribute("keyed_name"));
+						}
+						params.lockedById = result.getProperty("locked_by_id");
+					} 
+					else {
+						params.lockedById = "";
+					}
+
+					if (params.lockedById == "" || params.lockedById == top.aras.getUserID()) {
+						options = {
+								center: true,
+								resizable: true,
+								dialogHeight: "Process Planner" === params.itemParentType ? 695 : 510,
+								dialogWidth: 700
+							};
+						top.aras.modalDialogHelper.show("DefaultModal", top.aras.getMainWindow().main, params, options, "../Solutions/QP/scripts/MyTasksCompletionDialog.html");
+					}
+					populateActivityGrid();
+				}
+				break;
+		}
+	}
+
+	function onPrintCommand() {
+		var gridDom = top.aras.createXMLDocument();
+		var grid_xml = grid.getXML(false);
+		gridDom.loadXML(grid_xml);
+		if (gridDom.parseError.errorCode != 0) {
+			top.aras.AlertError(top.aras.getResource("", "common.an_internal_error_has_occured"), top.aras.getResource("", "inbasket.bad_grid_xml", gridDom.parseError.reason), top.aras.getResource("", "common.client_side_err"));
+			return false;
+		}
+
+		var elem = gridDom.createElement("printGrid");
+		elem.appendChild(gridDom.documentElement);
+		gridDom.documentElement = elem;
+		elem = gridDom.createElement("itemTypeName");
+		elem.text = "InBasket";
+		gridDom.documentElement.appendChild(elem);
+		contentOfPrintWindow = top.aras.applyXsltFile(gridDom, top.aras.getScriptsURL() + "../styles/printGrid.xsl");
+
+		window.open(top.aras.getScriptsURL() + "printGridDialog.html", "_blank", "menubar=0, resizable=1, scrollbars=1, location=0, toolbar=0, status=0");
+	}
+
+	function onEditAttachedCommand() {
+		onViewAttachedCommand(true);
+	}
+
+	//Possible for workflow, project, action
+	function onViewAttachedCommand(viewWithLock) {
+		var rowID = grid.getSelectedId();
+		if (rowID == "") return;
+		var selectedItemType = getType4SelectedRow(rowID);
+		switch (selectedItemType) {
+			case "workflow":
+				var attachedType = grid.getUserData(rowID, "attachedType");
+				var attachedId = grid.getUserData(rowID, "attachedId");
+				if (viewWithLock) {
+					var itmNd = top.aras.getItemById(attachedType, attachedId, 0);
+					if (!top.aras.isLocked(itmNd)) {
+						top.aras.lockItem(attachedId, attachedType);
+					}
+				}
+				top.aras.uiShowItem(attachedType, attachedId);
+				break;
+			case "project":
+				var projectID = grid.getUserData(rowID, "projectID");
+				if (viewWithLock) {
+					var itmNd = top.aras.getItemById("Project", projectID, 0);
+					if (!top.aras.isLocked(itmNd)) {
+						top.aras.lockItem(projectID, "Project");
+					}
+				}
+				top.aras.uiShowItem("Project", projectID);
+				break;
+			case "action":
+				var actionSourceType = grid.getUserData(rowID, "actionSourceType");
+				var actionSourceID = grid.getUserData(rowID, "actionSourceID");
+				if (viewWithLock) {
+					var itmNd = top.aras.getItemById(actionSourceType, actionSourceID, 0);
+					if (!top.aras.isLocked(itmNd))
+						top.aras.lockItem(actionSourceID, actionSourceType);
+				}
+				top.aras.uiShowItem(actionSourceType, actionSourceID);
+				break;
+		}
+		updateControlsState();
+	}
+
+	var wbs,
+		wbsId;
+	function showGanttChart() {
+		wbs = getWBS();
+		initActNums();
+		sortItems(wbs.documentElement);
+		var projectNumber = grid.items_Experimental.get(getSelectedRowID(), "value", "Workflow/Project").split(" ")[0];
+		showGanttInternal(wbs, projectNumber);
+	}
+
+	function getWBS() {
+		var query = top.aras.createXMLDocument();
+		query.load(top.aras.getI18NXMLResource("query.xml", top.aras.getScriptsURL() + "../Solutions/Project/"));
+		query.selectSingleNode("//*[@repeatTimes]").setAttribute("repeatTimes", -1);
+
+		wbsId = grid.getUserData(getSelectedRowID(), "wbsID");
+		query.documentElement.setAttribute("id", wbsId);
+
+		var result = top.aras.applyItem(query.documentElement.xml);
+		var xml = top.aras.createXMLDocument();
+		xml.loadXML(result);
+
+		return xml;
+	}
+
+	function getAssignmentId(id) {
+		var rowID = id || grid.getSelectedId();
+		return grid.getUserData(rowID, "assignmentID");
+	}
+
+	function getActivityId(rowID) {
+		return rowID.substring(0, 32);
+	}
+
+	function getType4SelectedRow(rowID) {
+		return grid.getUserData(rowID, "assignmentType");
+	}
+
+	function getSelectedRowID() {
+		return grid.getSelectedId();
+	}
+
+	function updateGrid(action) {
+		var rowID = grid.getSelectedId();
+		var act_lockType = ("lock" === action) ? "1" : "0";
+		var act_lock_icon = ("lock" === action) ? "<img src='../images/LockedByMe.svg' align='center' />" : " ";
+
+		grid.items_Experimental.set(rowID, "value", "L", act_lock_icon);
+		grid.setUserData(rowID, "lockType", act_lockType);
+		updateControlsState(rowID);
+	}
+
+	function loadSettings() {
+		if (top.aras.getPreferenceItemProperty("Core_GlobalLayout", null, "core_in_basket_history")) {
+			var typesArr = [];
+			typesArr = top.aras.getPreferenceItemProperty("Core_GlobalLayout", null, "core_in_basket_history").split("|");
+			document.getElementById("wfl_act").checked = (typesArr[0] == 1);
+			document.getElementById("project_act").checked = (typesArr[1] == 1 && ProjectSolutionLoadedInDB());
+			document.getElementById("action_items").checked = (typesArr[2] == 1 && QPSolutionLoadedInDB());
+			currViewMode = typesArr[3].toString();
+		}
+		else {
+			document.getElementById("wfl_act").checked = true;
+			currViewMode = "Active";
+		}
+	}
+
+	function ProjectSolutionLoadedInDB() {
+		return (top.aras.getItemByName("PackageDefinition", "com.aras.innovator.solution.Project", 0, "", "name") != null);
+      var forceSyncXmlHttpRequest = top.aras.getVariable("ForceSyncXmlHttpRequest");
+      try {
+        top.aras.setVariable("ForceSyncXmlHttpRequest", "true");
+      } finally {
+        top.aras.setVariable("ForceSyncXmlHttpRequest", forceSyncXmlHttpRequest);
+      }
+	}
+
+	function QPSolutionLoadedInDB() {
+		return (top.aras.getItemByName("PackageDefinition", "com.aras.innovator.solution.QP", 0, "", "name") != null);
+	}
+
+	onbeforeunload = function () {
+		if (typeof(GanttWnd) != "undefined" && GanttWnd != null && !top.aras.isWindowClosed(GanttWnd)) {
+			fixGridWidth();
+		}
+		menuFrame.showDefaultToolbar();
+	}
+
+	function fixGridWidth() {
+		var grid = document.getElementById("grid");
+		grid.style.width = document.documentElement.clientWidth + "px";
+		GanttWnd.close();
+	}
+
+	function populateLabels() {
+		var ids = ["inbasket.filter_by_type_html", "inbasket.workflow_activities_html", "inbasket.project_activities_html", "inbasket.action_items_html", "inbasket.filter_by_status_html", "inbasket.active_html", "inbasket.pending_html"];
+		for (var i = 0; i < ids.length; i++) {
+			document.getElementById(ids[i]).innerHTML = top.aras.getResource("", ids[i]);
+		}
+	}
+
+	function setElementVisibility() {
+		if (ProjectSolutionLoadedInDB()) {
+			document.getElementById("project_act").style.visibility = "visible";
+			document.getElementById("inbasket.project_activities_html").style.visibility = "visible";
+		}
+		if (QPSolutionLoadedInDB()) {
+			document.getElementById("action_items").style.visibility = "visible";
+			document.getElementById("inbasket.action_items_html").style.visibility = "visible";
+		}
+	}
+
+	onload = function() {
+		populateLabels();
+		setElementVisibility();
+	}
+	</script>
+		<div id="main" >
+			<div id="headArea">
+				<table style="width: 100%; height: 100%;" cellspacing="0" cellpadding="0">
+					<tr>
+						<td style="width: 45%;">
+							<fieldset style="width: 350px;">
+								<legend id="inbasket.filter_by_type_html"></legend>
+								<input class="arasCheckboxOrRadio" type="checkbox" id="wfl_act" name="wfl_act" onclick="populateActivityGrid()" />
+								<label id="inbasket.workflow_activities_html"></label>
+								<input class="arasCheckboxOrRadio" type="checkbox" id="project_act" name="project_act" onclick="populateActivityGrid()" style="visibility: hidden" />
+								<label style="visibility: hidden" id="inbasket.project_activities_html"></label>
+								<input class="arasCheckboxOrRadio" type="checkbox" id="action_items" name="action_items" onclick="populateActivityGrid()" style="visibility: hidden" />
+								<label style="visibility: hidden" id="inbasket.action_items_html"></label>
+							</fieldset>
+						</td>
+						<td style="width: 10px;"></td>
+						<td style="width: 200px;">
+							<fieldset style="width: 200px;">
+								<legend id="inbasket.filter_by_status_html"></legend>
+								<input class="arasCheckboxOrRadio" type="checkbox" id="Active" name="active" onclick="populateActivityGrid()" />
+								<label id="inbasket.active_html"></label>
+								<input class="arasCheckboxOrRadio" type="checkbox" id="Pending" name="pending" onclick="populateActivityGrid()" />
+								<label id="inbasket.pending_html"></label>
+							</fieldset>
+						</td>
+					</tr>
+				</table>
+			</div>
+			<div id="gridTD">
+			</div>
+		</div>
+	</body>
+</html>

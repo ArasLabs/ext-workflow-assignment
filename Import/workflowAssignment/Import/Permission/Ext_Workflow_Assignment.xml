@@ -1,0 +1,23 @@
+﻿<AML>
+ <Item type="Permission" id="8959F94E27B1453A9E57E57548572BCC" action="add">
+  <is_private>0</is_private>
+  <name>Ext_Workflow_Assignment</name>
+  <Relationships>
+   <Item type="Access" id="EDABD64A190947439134A22CD73CDD9E" action="add">
+    <can_change_access>1</can_change_access>
+    <can_delete>1</can_delete>
+    <can_discover>1</can_discover>
+    <can_get>1</can_get>
+    <can_update>1</can_update>
+    <related_id keyed_name="World" type="Identity">
+     <Item type="Identity" action="get" select="id">
+      <name>World</name>
+     </Item>
+    </related_id>
+    <show_permissions_warning>1</show_permissions_warning>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Ext_Workflow_Assignment" type="Permission">8959F94E27B1453A9E57E57548572BCC</source_id>
+   </Item>
+  </Relationships>
+ </Item>
+</AML>

@@ -1,0 +1,124 @@
+﻿<AML>
+ <Item type="Method" id="1FB7A33DF2534EBAB08A610C69997396" action="add">
+  <execution_allowed_to keyed_name="World" type="Identity">A73B655731924CD0B027E4F4D5FCC0A9</execution_allowed_to>
+  <method_code><![CDATA[var arasObj;
+var param = new Object();
+var arrayId = new Array();
+var map = new Object();
+var arrayCnt = 0;
+var itemType_nm = "Ext_Workflow_Assignment";
+var relItemType_nm = "Ext_Workflow_AssignDtail";
+var parent_itemId =  parent.thisItem.getID();
+var lockstat;
+var itmNd;
+var res;
+arasObj = top.aras;
+
+//Identityサブウインドウからの処理用のイベントハンドラー
+function addRelationshipHandler(result, type_of_action){
+	if (type_of_action == "doubleclick"){
+		if (result.item){
+			var itmID = result.item.getAttribute("id");
+			arrayId[arrayCnt++] = itmID;
+			//alert(arrayCnt + "  :   " + arrayId[arrayCnt] + "   :  " + itmID);
+		}
+	}else{
+		return true;
+	}
+}
+
+//リフレッシュ処理
+function refreshItemOnClient(tp, id) {
+	aras.removeFromCache(id);
+	var wnd = aras.uiFindWindowEx(id);
+	if (!wnd) {return;}
+	if (itmNd) {
+		var mode = (aras.isLockedByUser(itmNd)) ? "edit" : "view";
+		aras.uiReShowItem(id, id, mode);
+	}
+}
+
+//親アイテムタイプの取得
+itmNd = aras.getItemById(itemType_nm,  parent_itemId);
+
+//ロック状態の確認
+lockstat = (aras.isLockedByUser(itmNd));
+if(!lockstat) {
+	//alert("アサインメント設定は先にロックをしておく必要があります。");
+	//return true;
+}
+
+//Identityサブウィンドウの呼び出し
+param.aras = window.top.aras;                                 // dialogArguments[0]
+param.itemtypeName = "Identity";
+param.multiselect = true;
+param.handler = addRelationshipHandler; 
+//param.argType = "object";
+param.sourceItemTypeName = "Ext_Workflow_ADtail Identity";
+param.sourcePropertyName = "related_id";
+
+options = {dialogWidth: 700,dialogHeight: 450,center: true,help: true,resizable: true};
+
+//呼出部
+res = top.aras.modalDialogHelper.show('DefaultModal', window, param, options, 'searchDialog.html');
+
+//サブウィンドウの処理結果により、アイテムタイプへ更新を行う
+//ダブルクリック分の処理
+if (arrayId && arrayId.length > 0) {
+	for (var cnt=0; cnt<arrayId.length ; cnt++) {
+		var itmID = arrayId[cnt];
+		map[itmID] = itmID;
+		//alert("Double Click ID:" + itmID);
+	}
+}
+
+//選択分の処理
+if (res && res.length > 0) {
+	for (cnt=0; cnt<res.length ; cnt++) {
+		var itmID2 = res[cnt];
+		map[itmID2] = itmID2;
+		//alert("Comitt ID:" + itmID2);
+	}
+}
+
+//更新判定
+if ((arrayId && arrayId.length > 0) ||   (res && res.length > 0)){
+	var relItmNd = aras.getItemById(relItemType_nm,  this.getProperty("related_id"));
+	//Ext_Workflow_AssignDtailロック処理
+	lockstat = (aras.isLockedByUser(relItmNd));
+	if(!lockstat) {
+		res = arasObj.lockItemEx(relItmNd);
+		if (!res) {return false;}
+		relItmNd = aras.getItemById(relItemType_nm,  this.getProperty("related_id"));
+	}
+	
+	//Identityの削除情報作成
+	var body = "<AssignDtailID>" + this.getProperty("related_id") + "</AssignDtailID>";
+	
+	//Identityの追加情報作成
+	body += "<AddidentityList>";
+	var size = 0;
+	for (var k in map) {
+		if(size !== 0){body += "," + k;} 
+		else{ body += k;}
+		size++;
+	}
+	body += "</AddidentityList>";
+	
+	res = arasObj.applyMethod("Ext_Update_Act_identity", body);
+	if (!res) {return false;}
+	
+	//Ext_Workflow_AssignDtailアンロック処理
+	res = arasObj.unlockItemEx(relItmNd);
+	
+	//処理結果の表示
+	alert(size + " assignment of configuration is now complete.");
+	
+	//リフレッシュ処理
+	//refreshItemOnClient(itemType_nm,  parent_itemId);
+}
+return true;]]></method_code>
+  <method_type>JavaScript</method_type>
+  <name>Ext_Open_identity_subwindow</name>
+ </Item>
+</AML>

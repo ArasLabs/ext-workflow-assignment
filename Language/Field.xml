@@ -1,0 +1,34 @@
+<export>
+  <Item keyed_name="item_info" config_id="3721CEA0E5244666AC364A8A929E5E36">
+    <property __name="label" ja="" />
+    <property __name="legend" ja="" />
+  </Item>
+  <Item keyed_name="ext_identity_string" config_id="6085E9A47C1347B4AFF9BF117F90B3FD">
+    <property __name="label" ja="アサインメント" />
+    <property __name="legend" ja="" />
+  </Item>
+  <Item keyed_name="ext_activity" config_id="D523EA5E2DD3400F839B3B1C0B52EC79">
+    <property __name="label" ja="ロール" />
+    <property __name="legend" ja="" />
+  </Item>
+  <Item keyed_name="item_info" config_id="085BFA8EC73249BB8E2082047A2C0C94">
+    <property __name="label" ja="" />
+    <property __name="legend" ja="" />
+  </Item>
+  <Item keyed_name="btn_update" config_id="355B7AE432E94BAD974E0421C6C72813">
+    <property __name="label" ja="ワークフローに反映" />
+    <property __name="legend" ja="" />
+  </Item>
+  <Item keyed_name="html1" config_id="5A07F64AD605460DB8DF873FA2466008">
+    <property __name="label" ja="" />
+    <property __name="legend" ja="" />
+  </Item>
+  <Item keyed_name="result_iframe" config_id="1BEC72A918C74DD98E8A13A6E3F5D087">
+    <property __name="label" ja="" />
+    <property __name="legend" ja="" />
+  </Item>
+  <Item keyed_name="calculate_html" config_id="54FC81954B604E4FA600414FC6677B50">
+    <property __name="label" ja="" />
+    <property __name="legend" ja="" />
+  </Item>
+</export>

@@ -1,0 +1,18 @@
+<export>
+  <Item keyed_name="Ext_Workflow_ADtail Identity" config_id="43162BB7A9004AE983AFBE2A6CED5942">
+    <property __name="label" ja="" />
+    <property __name="label_plural" ja="" />
+  </Item>
+  <Item keyed_name="Ext_Workflow_Assign Activity" config_id="32E752992EA04C7CA482BEEF45CF8E3C">
+    <property __name="label" ja="Ext_Workflow_Assign Activity" />
+    <property __name="label_plural" ja="Ext_Workflow_Assign Activity" />
+  </Item>
+  <Item keyed_name="Ext_Workflow_AssignDtail" config_id="3EEAB6D10D5042938F12DC5ADB531D7B">
+    <property __name="label" ja="ワークフローアサインメント(詳細)" />
+    <property __name="label_plural" ja="ワークフローアサインメント(詳細)" />
+  </Item>
+  <Item keyed_name="Ext_Workflow_Assignment" config_id="5DE2CA314D8E4E6AA878F61F4D5158D3">
+    <property __name="label" ja="ワークフローアサインメント" />
+    <property __name="label_plural" ja="ワークフローアサインメント" />
+  </Item>
+</export>

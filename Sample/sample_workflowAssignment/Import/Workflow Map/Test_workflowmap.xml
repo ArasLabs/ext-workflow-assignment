@@ -1,0 +1,257 @@
+﻿<AML>
+ <Item type="Workflow Map" id="5C70143172714CD992AEB90D311F939A" action="add">
+  <node_bg_color>       </node_bg_color>
+  <node_label1_color>       </node_label1_color>
+  <node_label1_font></node_label1_font>
+  <node_label2_color>       </node_label2_color>
+  <node_label2_font></node_label2_font>
+  <node_name_color>       </node_name_color>
+  <node_name_font></node_name_font>
+  <node_size></node_size>
+  <process_owner keyed_name="Innovator Admin" type="Identity">
+   <Item type="Identity" action="get" select="id">
+    <name>Innovator Admin</name>
+   </Item>
+  </process_owner>
+  <transition_line_color>       </transition_line_color>
+  <transition_name_color>       </transition_name_color>
+  <transition_name_font></transition_name_font>
+  <name>Test_workflowmap</name>
+  <Relationships>
+   <Item type="Workflow Map Activity" action="add">
+    <related_id keyed_name="End" type="Activity Template">
+     <Item type="Activity Template" id="8FC0D8B795444EBEA9D0C0C816493618" action="add">
+      <can_delegate>0</can_delegate>
+      <can_refuse>0</can_refuse>
+      <consolidate_ondelegate>0</consolidate_ondelegate>
+      <expected_duration>0</expected_duration>
+      <icon>../images/Delete.svg</icon>
+      <is_auto>1</is_auto>
+      <is_end>1</is_end>
+      <is_start>0</is_start>
+      <message xml:lang="en">Please Review...</message>
+      <priority>1</priority>
+      <reminder_count>0</reminder_count>
+      <reminder_interval>0</reminder_interval>
+      <timeout_duration>0</timeout_duration>
+      <wait_for_all_inputs>0</wait_for_all_inputs>
+      <wait_for_all_votes>0</wait_for_all_votes>
+      <x>520</x>
+      <y>98</y>
+      <name>End</name>
+     </Item>
+    </related_id>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Test_workflowmap" type="Workflow Map">5C70143172714CD992AEB90D311F939A</source_id>
+   </Item>
+   <Item type="Workflow Map Activity" action="add">
+    <related_id keyed_name="Start" type="Activity Template">
+     <Item type="Activity Template" id="D8F228FBB1564F4C9C458D063CE13122" action="add">
+      <can_delegate>0</can_delegate>
+      <can_refuse>0</can_refuse>
+      <consolidate_ondelegate>0</consolidate_ondelegate>
+      <expected_duration>0</expected_duration>
+      <icon>../images/WorkflowStart.svg</icon>
+      <is_auto>1</is_auto>
+      <is_end>0</is_end>
+      <is_start>1</is_start>
+      <message xml:lang="en">Please Review...</message>
+      <priority>2</priority>
+      <reminder_count>0</reminder_count>
+      <reminder_interval>0</reminder_interval>
+      <timeout_duration>0</timeout_duration>
+      <wait_for_all_inputs>0</wait_for_all_inputs>
+      <wait_for_all_votes>0</wait_for_all_votes>
+      <x>28</x>
+      <y>95</y>
+      <name>Start</name>
+      <Relationships>
+       <Item type="Activity Template Method" id="44DEF9C620D048D3AE04F2CD04E838ED" action="add">
+        <event>on_activate</event>
+        <related_id keyed_name="Ext_Create_Workflow_Assignment" type="Method">
+         <Item type="Method" action="get" select="id">
+          <name>Ext_Create_Workflow_Assignment</name>
+         </Item>
+        </related_id>
+        <sort_order>128</sort_order>
+        <source_id keyed_name="Start" type="Activity Template">D8F228FBB1564F4C9C458D063CE13122</source_id>
+       </Item>
+       <Item type="Workflow Map Path" id="0D593E1C50154880914041677FB32DE0" action="add">
+        <authentication>none</authentication>
+        <is_default>1</is_default>
+        <is_override>0</is_override>
+        <name>Go1</name>
+        <related_id>B7CE070D99F54553B1AD57708D83A00D</related_id>
+        <segments></segments>
+        <sort_order>128</sort_order>
+        <source_id keyed_name="Start" type="Activity Template">D8F228FBB1564F4C9C458D063CE13122</source_id>
+        <x>35</x>
+        <y>9</y>
+       </Item>
+      </Relationships>
+     </Item>
+    </related_id>
+    <sort_order>256</sort_order>
+    <source_id keyed_name="Test_workflowmap" type="Workflow Map">5C70143172714CD992AEB90D311F939A</source_id>
+   </Item>
+   <Item type="Workflow Map Activity" action="add">
+    <related_id keyed_name="Act1" type="Activity Template">
+     <Item type="Activity Template" id="B7CE070D99F54553B1AD57708D83A00D" action="add">
+      <can_delegate>0</can_delegate>
+      <can_refuse>0</can_refuse>
+      <consolidate_ondelegate>0</consolidate_ondelegate>
+      <icon>../images/WorkflowNode.svg</icon>
+      <is_auto>0</is_auto>
+      <is_end>0</is_end>
+      <is_start>0</is_start>
+      <message xml:lang="en">Please Review...</message>
+      <wait_for_all_inputs>0</wait_for_all_inputs>
+      <wait_for_all_votes>0</wait_for_all_votes>
+      <x>140</x>
+      <y>93</y>
+      <name>Act1</name>
+      <Relationships>
+       <Item type="Activity Template Assignment" id="32989425B11D41BA8BB1DC9C2E2C9FF7" action="add">
+        <related_id keyed_name="Creator" type="Identity">
+         <Item type="Identity" action="get" select="id">
+          <name>Creator</name>
+         </Item>
+        </related_id>
+        <sort_order>128</sort_order>
+        <source_id keyed_name="Act1" type="Activity Template">B7CE070D99F54553B1AD57708D83A00D</source_id>
+        <is_required>1</is_required>
+        <for_all_members>0</for_all_members>
+        <voting_weight>100</voting_weight>
+       </Item>
+       <Item type="Workflow Map Path" id="28C533362BC84A18BB035B0E08392EDD" action="add">
+        <authentication>none</authentication>
+        <is_default>0</is_default>
+        <is_override>0</is_override>
+        <name>Go2</name>
+        <related_id>83E9BC3D93E240C6B035A821F5B31DB7</related_id>
+        <sort_order>128</sort_order>
+        <source_id keyed_name="Act1" type="Activity Template">B7CE070D99F54553B1AD57708D83A00D</source_id>
+       </Item>
+       <Item type="Workflow Map Path" id="0F3F756CD5C24AE39820626EC14EC458" action="add">
+        <authentication>none</authentication>
+        <is_default>0</is_default>
+        <is_override>0</is_override>
+        <name>Go3</name>
+        <related_id>BBE2C12AE99141FEB0D103FD57E36F55</related_id>
+        <segments></segments>
+        <sort_order>256</sort_order>
+        <source_id keyed_name="Act1" type="Activity Template">B7CE070D99F54553B1AD57708D83A00D</source_id>
+        <x>0</x>
+        <y>0</y>
+       </Item>
+      </Relationships>
+     </Item>
+    </related_id>
+    <sort_order>384</sort_order>
+    <source_id keyed_name="Test_workflowmap" type="Workflow Map">5C70143172714CD992AEB90D311F939A</source_id>
+   </Item>
+   <Item type="Workflow Map Activity" action="add">
+    <related_id keyed_name="Act2" type="Activity Template">
+     <Item type="Activity Template" id="83E9BC3D93E240C6B035A821F5B31DB7" action="add">
+      <can_delegate>1</can_delegate>
+      <can_refuse>1</can_refuse>
+      <consolidate_ondelegate>0</consolidate_ondelegate>
+      <icon>../images/WorkflowNode.svg</icon>
+      <is_auto>0</is_auto>
+      <is_end>0</is_end>
+      <is_start>0</is_start>
+      <message xml:lang="en">Please Review...</message>
+      <wait_for_all_inputs>0</wait_for_all_inputs>
+      <wait_for_all_votes>0</wait_for_all_votes>
+      <x>289</x>
+      <y>21</y>
+      <name>Act2</name>
+      <Relationships>
+       <Item type="Workflow Map Path" id="DDAABEE0164146FC89708D1B4F51620E" action="add">
+        <authentication>none</authentication>
+        <is_default>0</is_default>
+        <is_override>0</is_override>
+        <name>Go End</name>
+        <related_id>8FC0D8B795444EBEA9D0C0C816493618</related_id>
+        <segments></segments>
+        <sort_order>128</sort_order>
+        <source_id keyed_name="Act2" type="Activity Template">83E9BC3D93E240C6B035A821F5B31DB7</source_id>
+        <x>96</x>
+        <y>19</y>
+       </Item>
+      </Relationships>
+     </Item>
+    </related_id>
+    <sort_order>512</sort_order>
+    <source_id keyed_name="Test_workflowmap" type="Workflow Map">5C70143172714CD992AEB90D311F939A</source_id>
+   </Item>
+   <Item type="Workflow Map Activity" action="add">
+    <related_id keyed_name="Act3" type="Activity Template">
+     <Item type="Activity Template" id="BBE2C12AE99141FEB0D103FD57E36F55" action="add">
+      <can_delegate>1</can_delegate>
+      <can_refuse>1</can_refuse>
+      <consolidate_ondelegate>0</consolidate_ondelegate>
+      <icon>../Images/WorkflowStart.svg</icon>
+      <is_auto>1</is_auto>
+      <is_end>0</is_end>
+      <is_start>0</is_start>
+      <message xml:lang="en">Please Review...</message>
+      <wait_for_all_inputs>0</wait_for_all_inputs>
+      <wait_for_all_votes>0</wait_for_all_votes>
+      <x>288</x>
+      <y>153</y>
+      <name>Act3</name>
+      <Relationships>
+       <Item type="Workflow Map Path" id="BA66E6F6D1D74129BF2A2B861E0A3383" action="add">
+        <authentication>none</authentication>
+        <is_default>1</is_default>
+        <is_override>0</is_override>
+        <name>Go4</name>
+        <related_id>E3A7B23FC07347449E6CB0D8B4221F5C</related_id>
+        <segments></segments>
+        <sort_order>128</sort_order>
+        <source_id keyed_name="Act3" type="Activity Template">BBE2C12AE99141FEB0D103FD57E36F55</source_id>
+        <x>0</x>
+        <y>0</y>
+       </Item>
+      </Relationships>
+     </Item>
+    </related_id>
+    <sort_order>640</sort_order>
+    <source_id keyed_name="Test_workflowmap" type="Workflow Map">5C70143172714CD992AEB90D311F939A</source_id>
+   </Item>
+   <Item type="Workflow Map Activity" action="add">
+    <related_id keyed_name="Act4" type="Activity Template">
+     <Item type="Activity Template" id="E3A7B23FC07347449E6CB0D8B4221F5C" action="add">
+      <can_delegate>1</can_delegate>
+      <can_refuse>0</can_refuse>
+      <consolidate_ondelegate>1</consolidate_ondelegate>
+      <icon>../images/WorkflowNode.svg</icon>
+      <is_auto>0</is_auto>
+      <is_end>0</is_end>
+      <is_start>0</is_start>
+      <message xml:lang="en">Please Review...</message>
+      <wait_for_all_inputs>0</wait_for_all_inputs>
+      <wait_for_all_votes>0</wait_for_all_votes>
+      <x>382</x>
+      <y>152</y>
+      <name>Act4</name>
+      <Relationships>
+       <Item type="Workflow Map Path" id="3E8CB6E9634F4D59BF18216DBBCEE099" action="add">
+        <authentication>none</authentication>
+        <is_default>0</is_default>
+        <is_override>0</is_override>
+        <name>Go End</name>
+        <related_id>8FC0D8B795444EBEA9D0C0C816493618</related_id>
+        <sort_order>128</sort_order>
+        <source_id keyed_name="Act4" type="Activity Template">E3A7B23FC07347449E6CB0D8B4221F5C</source_id>
+       </Item>
+      </Relationships>
+     </Item>
+    </related_id>
+    <sort_order>768</sort_order>
+    <source_id keyed_name="Test_workflowmap" type="Workflow Map">5C70143172714CD992AEB90D311F939A</source_id>
+   </Item>
+  </Relationships>
+ </Item>
+</AML>

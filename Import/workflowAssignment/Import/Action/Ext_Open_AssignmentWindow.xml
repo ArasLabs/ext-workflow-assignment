@@ -1,0 +1,15 @@
+﻿<AML>
+ <Item type="Action" id="45FA11B8A2134800BBD6D6DC68FE1FFE" action="add">
+  <item_query>&lt;Item type="{@type}" id="{@id}" levels= "1" action="get" /&gt;</item_query>
+  <label xml:lang="en">Open Assignment Window</label>
+  <location>client</location>
+  <method keyed_name="Ext_Open_AssignmentWindow" type="Method">
+   <Item type="Method" action="get" select="id">
+    <name>Ext_Open_AssignmentWindow</name>
+   </Item>
+  </method>
+  <target>none</target>
+  <type>item</type>
+  <name>Ext_Open_AssignmentWindow</name>
+ </Item>
+</AML>

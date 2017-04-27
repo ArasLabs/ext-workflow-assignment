@@ -1,0 +1,45 @@
+﻿<AML>
+ <Item type="Method" id="BB922F0940F540ADB874AC8E91B3D321" action="add">
+  <execution_allowed_to keyed_name="World" type="Identity">A73B655731924CD0B027E4F4D5FCC0A9</execution_allowed_to>
+  <method_code><![CDATA[
+            #region Aras Innovator Method本体
+
+            StringBuilder sql = new StringBuilder();
+            Item result = this.newItem();
+            Innovator inn = this.getInnovator();
+
+            //パラメータの取得
+            string copy_id = this.getProperty("CopyID","");
+            string login_id = this.getProperty("LoginID", "");
+            string ext_wfassign_id = this.getProperty("ExtWFAssignID", "");
+            //CCO.Utilities.WriteDebug("test", "copy_id:" + copy_id);
+            //CCO.Utilities.WriteDebug("test", "login_id:" + login_id);
+            //CCO.Utilities.WriteDebug("test", "ext_wfassign_id:" + ext_wfassign_id);
+
+            //前回のIdentity情報の取得
+            sql.Append("select ewa.id,ewa.EXT_ACTIVITY,ewa.EXT_IDENTITY_ID,ewa.EXT_IDENTITY_STRING,ewaa.SORT_ORDER,ewa.EXT_CONFIG_KEY ");
+            sql.Append("from [EXT_WORKFLOW_ASSIGN_ACTIVITY] ewaa ");
+            sql.Append("  inner join [EXT_WORKFLOW_ASSIGNDTAIL] ewa on ewaa.RELATED_ID = ewa.ID ");
+            sql.Append("where ewaa.source_id = (");
+            sql.Append("  select top 1 ewa.id from [EXT_WORKFLOW_ASSIGNMENT] ewa inner join [WORKFLOW_PROCESS] wp ");
+            sql.Append("   on ewa.EXT_WORKFLOW_PROCESS = wp.ID ");
+            sql.Append("  where wp.COPIED_FROM_STRING = '");
+            sql.Append(copy_id);
+            sql.Append("'  and ewa.EXT_WORKFLOW_LOGINUSER ='");
+            sql.Append(login_id);
+            sql.Append("'  and ewa.ID != '");
+            sql.Append(ext_wfassign_id);
+            sql.Append("' order by ewa.CREATED_ON desc) ");
+            sql.Append("order by ewaa.SORT_ORDER,ewa.id ");
+            //CCO.Utilities.WriteDebug("test", "sql:" + sql.ToString());
+
+            result = inn.applySQL(sql.ToString());
+            //CCO.Utilities.WriteDebug("test", "result:" + result.ToString());
+
+            return result;
+
+            #endregion]]></method_code>
+  <method_type>C#</method_type>
+  <name>Ext_Get_PreAssignment</name>
+ </Item>
+</AML>

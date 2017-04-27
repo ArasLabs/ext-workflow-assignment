@@ -1,0 +1,3 @@
+<imports>
+  <package name="sample_workflowAssignment" path="sample_workflowAssignment\Import" />
+</imports>

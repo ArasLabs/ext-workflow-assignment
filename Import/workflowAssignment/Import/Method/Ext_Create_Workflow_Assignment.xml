@@ -1,0 +1,137 @@
+﻿<AML>
+ <Item type="Method" id="7F528EABF2C243C8A9E3BD3348F7A407" action="add">
+  <execution_allowed_to keyed_name="World" type="Identity">A73B655731924CD0B027E4F4D5FCC0A9</execution_allowed_to>
+  <method_code><![CDATA[#region Aras Innovator Method本体
+
+            Item qry1 = this.newItem();
+            Item qry2 = this.newItem();
+            Item qry3 = this.newItem();
+            Item qry4 = this.newItem();
+            Item qry5 = this.newItem();
+            Hashtable ht = new Hashtable();
+            StringBuilder sql = null;
+            Item result = this.newItem();
+            Innovator inn = this.getInnovator();
+
+            //[WORKFLOW_PROCESS]情報の取得
+            Item wfProcessItem = this.newItem(this.getAttribute("type"), "Ext_Get_Workflow_Process_Item");
+            wfProcessItem.setID(this.getID());
+            wfProcessItem = wfProcessItem.apply();
+            if (wfProcessItem.isError())
+            {
+                return inn.newError("Error retrieving the controlled item:" + wfProcessItem.getErrorDetail());
+            }
+            string wfProcessId = wfProcessItem.getID();
+            //CCO.Utilities.WriteDebug("test", "wfProcessId:" + wfProcessId);
+
+
+            //Identityを設定すべきActivityを取得
+            sql = new StringBuilder();
+            sql.Append("select a.id,a.NAME,a.STATE,a.ACTIVE_DATE,a.KEYED_NAME from [WORKFLOW_PROCESS_ACTIVITY] pa ");
+            sql.Append(" inner join [ACTIVITY] a on pa.RELATED_ID = a.ID ");
+            sql.Append(" and a.IS_AUTO = '0' ");
+            sql.Append(" where pa.source_id = '");
+            sql.Append(wfProcessId);
+            sql.Append("' ");
+            sql.Append(" order by a.IS_START desc, a.X, a.Y ,a.IS_END ");
+            result = inn.applySQL(sql.ToString());
+            //CCO.Utilities.WriteDebug("test", "result SQL:" + result.ToString());
+
+
+            //[EXT_WORKFLOW_ASSIGNMENT]-[EXT_WORKFLOW_ASSIGN_ACTIVITY]-[EXT_WORKFLOW_ASSIGNDTAIL]の構成を作成
+            //Admin権限付与
+            Aras.Server.Security.Identity ident = Aras.Server.Security.Identity.GetByName("Administrators");
+            bool PermissionWasSet = Aras.Server.Security.Permissions.GrantIdentity(ident);
+            try{
+                string login_id = inn.getUserID();
+                //[EXT_WORKFLOW_ASSIGNMENT]設定
+                qry1 = this.newItem("Ext_Workflow_Assignment", "add");
+                qry1.setProperty("ext_workflow_loginuser", login_id);
+                qry1.setProperty("ext_workflow_process", wfProcessId);
+                //qry1.setAttribute("serverEvents", "0"); //[EXT_WORKFLOW_ASSIGNMENT]新規登録の際のAfterAddイベントの中止
+
+                //前回のIdentity情報の取得(Workflow Map ID、ログインID、Ext_workflow_assainment_id)
+                string copyid = wfProcessItem.getProperty("copied_from_string",""); //Workflow Map ID
+                String body = "<CopyID>" + copyid + "</CopyID><LoginID>" + login_id + "</LoginID><ExtWFAssignID>" + "" +"</ExtWFAssignID>";
+                Item preIdentityItem = inn.applyMethod("Ext_Get_PreAssignment", body);
+
+                for (int i = 0; i < preIdentityItem.getItemCount(); i++)
+                {
+                    //[Ext_Workflow_ADtail Identity]の設定
+                    Item ind = preIdentityItem.getItemByIndex(i);
+                    ht.Add(ind.getProperty("ext_config_key", ""), ind);
+                   
+                    //CCO.Utilities.WriteDebug("test", "ind:" + ind.getProperty("id",""));
+                    //CCO.Utilities.WriteDebug("test", "ind:" + ind.getProperty("ext_activity", ""));
+                    //CCO.Utilities.WriteDebug("test", "ind:" + ind.getProperty("ext_identity_id", ""));
+                    //CCO.Utilities.WriteDebug("test", "ind:" + ind.getProperty("ext_identity_string", ""));
+                    //CCO.Utilities.WriteDebug("test", "ind:" + ind.getProperty("sort_order", ""));
+                    //CCO.Utilities.WriteDebug("test", "ind:" + ind.getProperty("ext_config_key", ""));
+                }
+
+                //[EXT_WORKFLOW_ASSIGN_ACTIVITY]-[EXT_WORKFLOW_ASSIGNDTAIL]設定
+                for (int i = 0; i < result.getItemCount(); i++)
+                {
+                    Item act = result.getItemByIndex(i);
+                    string config_key = act.getProperty("keyed_name", "");   /* WFのアクティテビティのKeyed_nameはプロセス内で一意になるようにしてください */
+                    qry2 = this.newItem("Ext_Workflow_AssignDtail", "add");
+                    //qry2.setAttribute("serverEvents", "0"); //[EXT_WORKFLOW_ASSIGNDTAIL]新規登録の際のAfterAddイベントの中止
+                    qry2.setProperty("ext_activity", act.getID());
+                    qry2.setProperty("ext_config_key", config_key);
+
+                    //前回のActivityに対するIdentity設定を照会
+                    qry4 = (Item)ht[config_key];
+                    //CCO.Utilities.WriteDebug("test", "config_key:" + config_key);
+                    if(qry4 != null)
+                    {
+                        String idarray_str = qry4.getProperty("ext_identity_id");
+                        //CCO.Utilities.WriteDebug("test", "idarray_str:" + idarray_str);
+                        qry2.setProperty("ext_identity_string", qry4.getProperty("ext_identity_string", ""));
+                        qry2.setProperty("ext_identity_id", idarray_str);
+
+                        
+                        string[] idarray = idarray_str.Split(',');
+                        for (int s = 0; s < idarray.Length; s++)
+                        {
+                            string id_str = idarray[s];
+                            if (!String.IsNullOrEmpty(id_str))
+                            {
+                                qry5 = this.newItem("Ext_Workflow_ADtail Identity", "add");
+                                qry5.setProperty("related_id", id_str.Trim());
+                                //qry5.setRelatedItem(inn.getItemById("Identity", id_str.Trim()));
+                                //CCO.Utilities.WriteDebug("test", "idarray:" + id_str.Trim());
+                                qry2.addRelationship(qry5);
+                            }
+                        }
+                    }
+
+                    qry3 = this.newItem("Ext_Workflow_Assign Activity", "add");
+                    qry3.setProperty("sort_order", ((i + 1) * 10).ToString()); /*ソート順は10毎に設定*/
+                    qry3.setRelatedItem(qry2);
+                    qry1.addRelationship(qry3);
+                }
+                //CCO.Utilities.WriteDebug("test", "qry1:" + qry1.ToString());
+                result = qry1.apply();
+                //CCO.Utilities.WriteDebug("test", "result1:" + result.ToString());
+                //CCO.Utilities.WriteDebug("test", "source_type:" + result.getAttribute("typeId"));
+                //CCO.Utilities.WriteDebug("test", "copied_from_string:" + wfProcessItem.getProperty("copied_from_string", ""));
+                //CCO.Utilities.WriteDebug("test", "UserID():" + inn.getUserID());
+                if (result.isError())
+                {
+                    return inn.newError("Error create Ext_Workflow_Assignment item:" + result.getErrorDetail());
+                }
+            }finally{
+                // 付与した権限移譲の解除
+                if (PermissionWasSet)
+                {
+                    Aras.Server.Security.Permissions.RevokeIdentity(ident);
+                }
+            }
+ 
+            return this;
+
+            #endregion]]></method_code>
+  <method_type>C#</method_type>
+  <name>Ext_Create_Workflow_Assignment</name>
+ </Item>
+</AML>

@@ -1,0 +1,870 @@
+﻿<!DOCTYPE HTML>
+<!-- (c) Copyright by Aras Corporation, 2004-2013. -->
+<!-- #INCLUDE FILE="../include/utils.aspx" -->
+<html>
+<head>
+	<title></title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="../../styles/default.css" />
+	<style type="text/css">
+		@import "../../javascript/dojo/resources/dojo.css";
+		@import "../../javascript/dijit/themes/claro/claro.css";
+		@import "../../javascript/dojox/grid/resources/claroGrid.css";
+		@import "../../javascript/include.aspx?classes=common.css";
+		@import "../../styles/default.css";
+
+		html,body{
+			overflow: hidden;
+			width: 100%;
+			height: 100%;
+			margin: 0px;
+			padding: 0px;
+		}
+		.dialogContainer{
+			overflow: auto;
+			position: absolute;
+			left: 0px;
+			right: 0px;
+			top: 0px;
+			bottom: 0px;
+			padding: 5px;
+		}
+		fieldset{
+			border: 1px solid black;
+			padding-bottom: 5px;
+			text-align: left;
+		}
+		legend{
+			font-weight: bold;
+		}
+		.logicalSection{
+			position: relative;
+			text-align: center;
+			margin-top: 30px;
+			padding: 0px 20px;
+			min-width: 600px;
+		}
+		.logicalSubSection{
+			font-family: arial;
+			font-size: 12px;
+			padding-top: 15px;
+		}
+		.logicalSubSection2{
+			padding-top: 5px;
+		}
+	</style>
+	<script>
+		var isModalDialog = typeof (dialogArguments) !== "undefined";
+		var aras = isModalDialog ? dialogArguments.aras : top.aras;
+	</script>
+	<!--Please don not remove AddConfigurationLink.js because it is necessary to correct work of GetHtmlForUI server method!!!-->
+	<script type="text/javascript" src="../../javascript/dialog.js"></script>
+	<script type="text/javascript" src="../../javascript/AddConfigurationLink.js"></script>
+	<script type="text/javascript" src="../../javascript/include.aspx?classes=/dojo.js" data-dojo-config="isDebug: true, parseOnLoad: false, baseUrl:'../../javascript/dojo'"></script>
+	<script type="text/javascript" src="../../javascript/include.aspx?classes=XmlDocument"></script>
+	<script type="text/javascript" src="../../javascript/PopulateDocByLabels.js"></script>		
+	<script type="text/javascript" src="../../javascript/md5.js"></script>
+	<script type="text/javascript">
+		function getItemFromServer(amlQuery) {
+			var tmpRes = aras.soapSend("ApplyItem", amlQuery);
+			if (tmpRes.getFaultCode() != 0) {
+				aras.AlertError(tmpRes);
+				return null;
+			}
+			return tmpRes.getResult().selectSingleNode("Item");
+		}
+
+		function getMethodFromServer(amlQuery) {
+			var tmpRes = aras.soapSend("ApplyMethod", amlQuery);
+			if (tmpRes.getFaultCode() != 0) {
+				aras.AlertError(tmpRes);
+				return null;
+			}
+			return tmpRes.getResult().selectSingleNode("Item");
+		}
+
+		var VoteDialogArguments = isModalDialog ? dialogArguments : parent.dialogArguments;
+		var taskgrid = null;
+		clientControlsFactory.createControl("Aras.Client.Controls.Public.GridContainer", undefined, function (control) {
+			taskgrid = control;
+			taskgrid.setLayout_Experimental([{ field: "sequence", name: top.aras.getResource("", "inbasketvd.sequence"), width: "12%", styles: "text-align: center;", headerStyles: "text-align: center;" },
+				{ field: "required", name: top.aras.getResource("", "inbasketvd.required"), width: "12%", styles: "text-align: center;", headerStyles: "text-align: center;", editable: false },
+				{ field: "description", name: top.aras.getResource("", "inbasketvd.description"), width: "64%", styles: "text-align: left;", headerStyles: "text-align: center;" },
+				{ field: "complete", name: top.aras.getResource("", "inbasketvd.complete"), width: "12%", styles: "text-align: center;", headerStyles: "text-align: center;", editable: true}]);
+			getAllowedVotes();
+			populateTasksList();
+			document.getElementById("delegate").addEventListener("blur", function (e) { doSearchIdentity() }, true);
+		});
+	</script>
+	<script type="text/javascript">
+		var MyActivity = VoteDialogArguments.activity;
+		var workflowName = VoteDialogArguments.wflName;
+		var workflowId = VoteDialogArguments.wflId;
+		var itemId = VoteDialogArguments.itemId;
+		var MyActId = aras.getItemProperty(MyActivity, "id");
+		var MyActLabel = aras.getItemProperty(MyActivity, "label") || aras.getItemProperty(MyActivity, "name");
+		var CanDelegate = aras.getItemProperty(MyActivity, "can_delegate");
+		var CanRefuse = aras.getItemProperty(MyActivity, "can_refuse");
+
+		var MyWflName = workflowName; //Workflow Process name
+		var MyWflId = workflowId;
+
+		var MyAssID = VoteDialogArguments.assignmentId; //LOL :))
+		var MyAssItem = getItemFromServer("<Item type='Activity Assignment' action='get' levels='1' id='"+MyAssID+"'/>");
+		var delegateID = 0;
+
+		onload = function() {
+			populateNames();
+			populateVariables();
+			refreshFieldsColor();
+		};
+
+		function refreshFieldsColor(){
+			var fields = document.querySelectorAll(".dynamicBkColor");
+			for (var i = 0; i < fields.length; i++){
+				fields[i].style["backgroundColor"] = fields[i].readOnly ? "#D3D3D3" : "white";
+			}
+		}
+
+		function populateNames(){
+			document.getElementById("WorkflowNameCell").innerHTML = MyWflName;
+			document.getElementById("ActivityLabelCell").innerHTML = MyActLabel;
+		}
+
+		function esc(str){
+			return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+		}
+
+		function getSequenceOrderArray(nodes) {
+			var arr = new Array(nodes.length);
+			var text_val;
+
+			for (var i = 0; i < nodes.length; i++) {
+				text_val = aras.getItemProperty(nodes[i], "sequence");
+				text_val = text_val ? parseInt(text_val, 10) : "";
+				arr[i] = { seq: text_val, ind: i };
+			}
+
+			return arr.sort(function(a,b) { return a.seq - b.seq });
+		}
+
+		function populateTasksList() {
+			var taskList, task, taskValItem;
+			var row_id, cell;
+			var sequence, is_required, descr, completed_on;
+
+			if (!(MyActivity)) return;
+			taskList = MyActivity.selectNodes('Relationships/Item[@type="Activity Task"]');
+			var items = [];
+			var arr = getSequenceOrderArray(taskList);
+			for (var i = 0; i < taskList.length; i++) {
+				task = taskList[arr[i].ind];
+				row_id = aras.getItemProperty(task, "id");
+
+				sequence = aras.getItemProperty(task, "sequence");
+				sequence = sequence ? parseInt(sequence, 10) : ""; 
+				is_required = ("1" == aras.getItemProperty(task, "is_required"));
+				descr = aras.getItemProperty(task, "description");
+
+				taskValItem = MyAssItem.selectSingleNode("Relationships/Item[@type='Activity Task Value' and task='" + row_id + "']");
+				if (!taskValItem) {
+					var tempItemNode = MyAssItem.ownerDocument.createElement("Item");
+					tempItemNode.setAttribute("type", "Activity Task Value");
+					tempItemNode.setAttribute("action", "add");
+
+					var tempNode = tempItemNode.ownerDocument.createElement("task");
+					tempNode.text = row_id;
+					tempItemNode.appendChild(tempNode);
+
+					tempNode = tempItemNode.ownerDocument.createElement("source_id");
+					tempNode.setAttribute("type", "Activity Assignment");
+					tempNode.text = MyAssID;
+					tempItemNode.appendChild(tempNode);
+					if (!MyAssItem.selectSingleNode("Relationships")) {
+						tempNode = MyAssItem.ownerDocument.createElement("Relationships");
+						MyAssItem.appendChild(tempNode);
+					}
+					MyAssItem.selectSingleNode("Relationships").appendChild(tempItemNode);
+				}
+
+				completed_on = taskValItem ? aras.getItemProperty(taskValItem, "completed_on") : "";
+				items.push( { uniqueId: row_id, sequence: sequence, required: is_required, description: descr, complete: (!!completed_on) } );
+			}
+			taskgrid.setArrayData_Experimental(items);
+		}
+
+		function populateVariables() {
+			var varList,
+				variable,
+				tempTd,
+				tempSelect,
+				varsTr,
+				varValItem,
+				varLabel,
+				varID,
+				varType,
+				varValue,
+				checked,
+				srcListID,
+				listVals,
+				arr,
+				i,
+				j;
+
+			function appendElement (parentToExpand, elementType, attributes, properties) {
+				var element = document.createElement(elementType),
+					prop;
+				if (element) {
+					if (attributes) {
+						for (prop in attributes) {
+							element.setAttribute(prop, attributes[prop]);
+						}
+					}
+					if (properties) {
+						for (prop in properties) {
+							element[prop] = properties[prop];
+						}
+					}
+					if (parentToExpand && 'appendChild' in parentToExpand) {
+						parentToExpand.appendChild(element);
+					}
+				}
+				return element;
+			}
+
+			if (MyActivity) {
+				varList = MyActivity.selectNodes('Relationships/Item[@type="Activity Variable" and (not(is_hidden) or is_hidden="0")]');
+				if (varList.length == 0) {
+					document.getElementById("VariablesSection").style.display = "none";
+					return;
+				}
+			}
+
+			if (!(varList)) return;
+			arr = getSequenceOrderArray(varList);
+			var varTable = document.getElementById("VariablesTable");
+			for (i = 0; i < varList.length; i++) {
+				actVar = varList[arr[i].ind];
+				varLabel = aras.getItemProperty(actVar, "label");
+				if (varLabel == ""){
+					varLabel = aras.getItemProperty(actVar, "name");
+				}
+				varType = aras.getItemProperty(actVar, "datatype");
+				varID = aras.getItemProperty(actVar, "id");
+				varValItem = MyAssItem.selectSingleNode("Relationships/Item[@type='Activity Variable Value' and variable='" + varID + "']");
+				if (!varValItem) {
+					top.aras.AlertError(top.aras.getResource("", "inbasketvd.act_variable_not_found_varid", varID), undefined, undefined, top.window);
+					return;
+				}
+
+				varValue = aras.getItemProperty(varValItem, "value");
+				varsTr = appendElement(varTable, 'tr');
+				tempTd = appendElement(varsTr, 'td', {style: "padding: 2px 5px;"}, { innerHTML:'<b>' + varLabel + '</b>' });
+
+				// column with value
+				tempTd = appendElement(varsTr, 'td', {style: "padding: 2px 0px;"} );
+				if (varType == "String" || varType == "Integer" || varType == "Float") {
+					appendElement(tempTd, 'input', { type:'text', name:varLabel, value:varValue, style:'width:200px;' });
+				} else if (varType == "Boolean") {
+					var attributes = { type:'checkbox', name:varLabel, style:'position: relative;'},
+						checkbox;
+					if (varValue == "1") {
+						attributes.checked = "checked";
+					}
+					checkbox = appendElement(tempTd, 'input', attributes);
+					appendElement(tempTd, 'label', { style:'position: relative; left: ' + (-checkbox.offsetWidth) + 'px;' });
+				} else if (varType == "List") {
+					tempSelect = appendElement(tempTd, 'select', { name:varLabel, style:'width:200px;' });
+					srcListID = aras.getItemProperty(actVar, "source");
+					listVals = aras.getListValues(srcListID);
+
+					for (j = 0; j < listVals.length; j++){
+						val = aras.getItemProperty(listVals[j], "value");
+						lab = aras.getItemProperty(listVals[j], "label");
+
+						if (varValue == val){
+							appendElement(tempSelect, 'option', { value:val, selected:'selected' }, { text:lab });
+						} 
+						else{
+							appendElement(tempSelect, 'option', { value:val }, { text:lab });
+						}
+					}
+				}
+			}
+		}
+
+		function getAllowedVotes() {
+			if (!document.getElementById("VoteList")) {
+				setTimeout('getAllowedVotes()', 10);
+				return;
+			}
+			// fetch the path and auth properties from the Activities structure and the Tasks
+			if (!MyActivity) return;
+			var paths = MyActivity.selectNodes('Relationships/Item[@type="Workflow Process Path"][not(is_complete) or is_complete!="1"]');
+			if (paths == null) {
+				top.aras.AlertError(top.aras.getResource("", "inbasketvd.act_no_allowed_votes"), undefined, undefined, top.window);
+				return;
+			}
+
+			var voteIndex = 0;
+			var voteList = document.getElementById("VoteList");
+
+			var pathItem, path_name, path_label, path_id;
+			for (var i = 0; i < paths.length; i++) {
+				pathItem = paths[i];
+
+				var clonedAsNode = pathItem.selectSingleNode('related_id/Item[@type="Activity"]/cloned_as');
+				if (!clonedAsNode || "1" === clonedAsNode.getAttribute("is_null")) {
+					path_label = aras.getItemProperty(pathItem, "label");
+					path_name = aras.getItemProperty(pathItem, "name");
+					if (path_label == "") {
+						path_label = path_name;
+					}
+					path_id = aras.getItemProperty(pathItem, "id");
+
+					var newOption = new Option();
+					newOption.text = path_label;
+					newOption.textname = path_name;
+					newOption.value = path_id;
+					voteList.options[voteIndex++] = newOption;
+				}
+			}
+
+			// check if the Refuse and/or Delegate should be added
+			if (CanDelegate == "1") {
+				var newOption = new Option();
+				newOption.text = "Delegate";
+				newOption.textname = "Delegate";
+				newOption.value = path_id;
+				voteList.options[voteIndex++] = newOption;
+			}
+
+			if (CanRefuse == "1") {
+				var newOption = new Option();
+				newOption.text = "Refuse";
+				newOption.textname = "Refuse";
+				newOption.value = path_id;
+				voteList.options[voteIndex++] = newOption;
+			}
+
+			document.getElementById("Comments").value = aras.getItemProperty(MyAssItem, "comments");
+			voteList.options.selectedIndex = -1;
+		}
+
+		function onChangeVote() {
+			var voteList = document.getElementById("VoteList"),
+				password = document.querySelector("input[name=password]"),
+				esignature = document.querySelector("input[name=esignature]"),
+				selInd = voteList.options.selectedIndex;
+
+			if (selInd == -1) {
+				return;
+			}
+
+			var MyPath = voteList.options[selInd].text;
+			delegate.readOnly = MyPath != "Delegate";
+			delegate_img.disabled = MyPath != "Delegate";
+
+			var MyAuth = "none";
+			if (MyPath != "Delegate" && MyPath != "Refuse"){
+				var path_id = voteList.options[selInd].value;
+				var pathItem = MyActivity.selectSingleNode('Relationships/Item[@type="Workflow Process Path" and id="' + path_id + '"]');
+				MyAuth = aras.getItemProperty(pathItem, 'authentication');
+			}
+
+			if (password) {
+				password.readOnly = MyAuth !== "password";
+			}
+			if (esignature) {
+				esignature.readOnly = MyAuth !== "esignature";
+			}
+			refreshFieldsColor();
+		
+			aras.updateDomSelectLabel(voteList);
+		}
+
+		var lastDelegateVal = "";
+		function showSearchDialog(itemTypeName) {
+			if (delegate.readOnly) {
+				return;
+			}
+			var params = { aras: window.top.aras, itemtypeName: itemTypeName };
+			params.callback = function (dlgRes) {
+				if (!dlgRes) {
+					return;
+				}
+				delegateID = dlgRes.itemID;
+				delegate.value = dlgRes.keyed_name;
+				lastDelegateVal = delegate.value;
+			};
+			top.aras.modalDialogHelper.show("SearchDialog", top === top.aras.getMainWindow() ? top.main : top, params);
+		}
+
+		function doSearchIdentity() {
+			if (lastDelegateVal == delegate.value) {
+				return;
+			}
+
+			var item = aras.uiGetItemByKeyedName("Identity", delegate.value);
+			if (!item) {
+				if (delegate.value != "") {
+					top.aras.AlertError(top.aras.getResource("", "inbasketvd.wrong_iden"), undefined, undefined, top.window);
+				}
+				delegate.value = "";
+				lastDelegateVal = "";
+				delegateID = 0;
+				return;
+			}
+			else {
+				delegate.value = item.selectSingleNode("keyed_name").text;
+			}
+
+			delegateID = aras.getItemProperty(item, "id");
+			lastDelegateVal = delegate.value;
+		}
+
+		function delegateOnKeydown(event) {
+			//F2: keyCode = 113
+			event = window.event || event;
+			if (event.keyCode == 113) {
+				showSearchDialog("Identity");
+			}
+		}
+
+		function delegateClick() {
+			showSearchDialog("Identity");
+		}
+
+		function doComplete() {
+			completeActivity("complete");
+		}
+
+		function saveChanges() {
+			completeActivity("save");
+		}
+		function settingAssignment() {
+			var ext_body = "<Item type='Method' action='Ext_get_Workflow_Assignment_ID'><TargetItemID>" + itemId + "</TargetItemID></Item>";
+			var ext_result = getMethodFromServer(ext_body);
+			if (!ext_result) { alert("Failed to call of Assignment screen.");return false;}
+			aras.uiShowItem("Ext_Workflow_Assignment", aras.getItemProperty(ext_result, "workflow_assignment_id"));
+		}
+		function cancelVote() {
+			closeDialog();
+		}
+
+		function closeDialog() {
+			if (isModalDialog) {
+				top.window.close();		
+			} else {
+				setTimeout(function() {
+					VoteDialogArguments.dialog.onCancel();
+				}, 0);
+			}
+		}
+
+		function completeActivity(mode) {
+			var voteList = document.getElementById("VoteList"),
+				esignature = document.querySelector("input[name=esignature]"),
+				password = document.querySelector("input[name=password]");
+
+			if (mode != "complete" && mode != "save") {
+				return;
+			}
+
+			var selInd = voteList.options.selectedIndex;
+			if (selInd == -1) {
+				if (mode == "complete") {
+					top.aras.AlertError(top.aras.getResource("", "inbasketvd.votelist_no_selected_items"), undefined, undefined, top.window);
+					return;
+				}
+				else {
+					selInd = 0; //to allow save
+				}
+			}
+
+			if (voteList.options[selInd] == null) {
+				top.aras.AlertError(top.aras.getResource("", "inbasketvd.votelist_no_items"), undefined, undefined, top.window);
+				return;
+			}
+
+			var MyPathName = voteList.options[selInd].textname;
+			var MyPath = voteList.options[selInd].text;
+			var pathID = voteList.options[selInd].value;
+			var pathItem = MyActivity.selectSingleNode('Relationships/Item[@type="Workflow Process Path" and id="' + pathID + '"]');
+
+			var MyAuth = "none";
+			if (MyPath != "Delegate" && MyPath != "Refuse") {
+				MyAuth = aras.getItemProperty(pathItem, 'authentication');
+			}
+			var MD5Auth = "";
+			var AuthMode = "";
+
+			// check for password required at this point
+			if (MyAuth == "password") {
+				if (mode == "complete") {
+					if (password.value == "") {
+						top.aras.AlertError(top.aras.getResource("", "inbasketvd.enter_pwd"), undefined, undefined, top.window);
+						return;
+					}
+				}
+
+				AuthMode = "password";
+				var MD5AuthHandler = <%=GetJSHandlerForUI(1)%>;
+				MD5Auth = MD5AuthHandler();
+				if (mode == "complete") {
+					// 'undefined'\'null' string could be returned in some cases, for instance: 
+					//     a) it's Windows authentication;
+					//     b) the required resource (e.g. IOMLogin.aspx) is not properly configured with Windows authentication on IIS
+					// (for more information see implementation of 'GetJSHandlerForUI' and related code in the corresponding logon hooks assembly).
+					if(!MD5Auth) {
+						top.aras.AlertError(top.aras.getResource("", "inbasketvd.pwd_invalid"), undefined, undefined, top.window);
+						return;
+					}
+
+					var resultXML = aras.ValidateVote(MD5Auth, "password");
+					if (!resultXML) {
+						top.aras.AlertError(top.aras.getResource("", "common.an_internal_error_has_occured"), top.aras.getResource("", "inbasketvd.validatevote_resultxml_empty"), top.aras.getResource("", "common.client_side_err"), top.window);
+						return;
+					}
+
+					var result = resultXML.selectSingleNode(top.aras.XPathResult());
+					if (result.text != "pass") {
+						top.aras.AlertError(top.aras.getResource("", "inbasketvd.pwd_invalid"), undefined, undefined, top.window);
+						return;
+					}
+				}
+			}
+			else if (MyAuth == "esignature") {
+				if (mode == "complete") {
+					if (esignature.value == "") {
+						top.aras.AlertError(top.aras.getResource("", "inbasketvd.enter_esign"), undefined, undefined, top.window);
+						return;
+					}
+				}
+
+				AuthMode = "esignature";
+				MD5Auth = calcMD5(esignature.value);
+				if (mode == "complete") {
+					var resultXML = aras.ValidateVote(MD5Auth, "esignature");
+					if (!resultXML) {
+						top.aras.AlertError(top.aras.getResource("", "common.an_internal_error_has_occured"), top.aras.getResource("", "inbasketvd.validatevote_resultxml_empty"), top.aras.getResource("", "common.client_side_err"));
+						return;
+					}
+
+					var result = resultXML.selectSingleNode(top.aras.XPathResult());
+					if (result.text != "pass") {
+						top.aras.AlertError(top.aras.getResource("", "inbasketvd.esign_invalid"), undefined, undefined, top.window);
+						return;
+					}
+				}
+			}
+
+			if (MyPath == "Delegate")
+			{
+				if (mode == "complete") {
+					if (delegate.value == "") {
+						top.aras.AlertError(top.aras.getResource("", "inbasketvd.someone_delegate_to"), undefined, undefined, top.window);
+						return;
+					}
+				}
+			}
+
+			var body = "";
+			body += '<Item type="' + MyActivity.getAttribute('type') + '" action="EvaluateActivity">';
+			body += "<Activity>" + MyActId + "</Activity>";
+			body += "<ActivityAssignment>" + MyAssID + "</ActivityAssignment>";
+
+			body += "<Paths>";
+			body += "<Path id='" + pathID + "'><![CDATA[" + MyPathName + "]]></Path>";
+			body += "</Paths>";
+
+			body += "<DelegateTo>" + delegateID + "</DelegateTo>";
+
+			var taskList, task, taskID,
+				row_id, cell, sequence, is_required, task_complete,
+				validate = ("complete" === mode && "Delegate" !== MyPath && "Refuse" !== MyPath);
+
+			body += "<Tasks>";
+			taskList = MyActivity.selectNodes('Relationships/Item[@type="Activity Task"]');
+			for (var i = 0; i < taskList.length; i++) {
+				task = taskList[i];
+				taskID = aras.getItemProperty(task, "id");
+				row_id = taskID;
+
+				sequence = this.taskgrid.items_Experimental.get(row_id, "value", "sequence");
+				is_required = this.taskgrid.items_Experimental.get(row_id, "value", "required");
+				task_complete = this.taskgrid.items_Experimental.get(row_id, "value", "complete");
+				if (validate) {
+					if (is_required && !task_complete)
+					{
+						top.aras.AlertError(top.aras.getResource("", "inbasketvd.task_required", sequence), undefined, undefined, top.window);
+						return;
+					}
+				}
+
+				body += "<Task id='" + taskID + "' completed='" + (task_complete ? 1 : 0) + "'></Task>";
+			}
+			body += "</Tasks>";
+
+			var varList, actVar, varLabel, varType, varID, varValItem;
+			var elem, is_required, is_hidden, value;
+
+			body += "<Variables>";
+			varList = MyActivity.selectNodes('Relationships/Item[@type="Activity Variable"]');
+			for (i = 0; i < varList.length; i++) {
+				actVar = varList[i];
+				varLabel = aras.getItemProperty(actVar, "label");
+				if (varLabel == "") {
+					varLabel = aras.getItemProperty(actVar, "name");
+				}
+				varType = aras.getItemProperty(actVar, "datatype");
+				varID = aras.getItemProperty(actVar, "id");
+				is_required = (aras.getItemProperty(actVar, "is_required") == "1" ? true : false);
+				is_hidden = (aras.getItemProperty(actVar, "is_hidden") == "1" ? true : false);
+				value = "";
+
+				if (is_hidden) {
+					varValItem = MyAssItem.selectSingleNode("Relationships/Item[@type='Activity Variable Value' and variable='" + varID + "']");
+					if (!varValItem) {
+						top.aras.AlertError(top.aras.getResource("", "inbasketvd.act_variable_not_found_varid", varID), undefined, undefined, top.window);
+						return;
+					}
+
+					value = aras.getItemProperty(varValItem, "value");
+				}
+				else {
+					elem = document.getElementsByName(varLabel)[0];
+					if (!elem) return;
+
+					if (varType == "String" || varType == "Integer" || varType == "Float") {
+						value = elem.value;
+
+						if (validate) {
+							if (is_required && value == "") {
+								top.aras.AlertError(top.aras.getResource("", "inbasketvd.variable_required", varLabel), undefined, undefined, top.window);
+								return;
+							}
+						}
+					}
+					else if (varType == "Boolean") {
+						value = elem.checked ? "1" : "0";
+					}
+					else if (varType == "List") {
+						if (elem.options.selectedIndex != -1)
+							value = elem.options[elem.options.selectedIndex].text;
+						else {
+							if (validate) {
+								if (is_required && elem.options.length > 0) {
+									top.aras.AlertError(top.aras.getResource("", "inbasketvd.variable_required", varLabel), undefined, undefined, top.window);
+									return;
+								}
+							}
+						}
+					}
+				}
+
+				body += "<Variable id='" + varID + "'>" + esc(value) + "</Variable>";
+			}
+			body += "</Variables>";
+
+			body += "<Authentication mode='" + AuthMode + "'>" + MD5Auth + "</Authentication>";
+			body += "<Comments>" + esc(document.getElementById("Comments").value) + "</Comments>";
+
+			if (mode == "complete")
+				body += "<Complete>1</Complete>";
+			else if (mode == "save")
+				body += "<Complete>0</Complete>";
+
+			body += "</Item>";
+			var result = "<AML>";
+			var needForClearItem = false;
+			if (mode == "save") {
+				var valuesToAdd = MyAssItem.selectNodes('Relationships/Item[@type="Activity Task Value" and @action="add"]');
+				var valuesList = getSequenceOrderArray(valuesToAdd);
+				var tempBody = "";
+				var tempTaskValue;
+				for (var i = 0; i < valuesToAdd.length; i++) {
+					tempTaskValue = valuesToAdd.item(valuesList[i].ind);
+					tempBody += tempTaskValue.xml;
+					needForClearItem = true;
+				}
+				result += tempBody;
+			}
+			result += body;
+			result += "</AML>";
+
+			// now OK to execute the Vote.
+			var res = top.aras.soapSend("ApplyAML", result);
+			if (res.isFault()) {
+				if (res.getFaultCode() == "SOAP-ENV:Server.ItemIsLockedException") {
+					var type = res.results.selectSingleNode("//detail/*[local-name()='item']/@type").value;
+					var id = res.results.selectSingleNode("//detail/*[local-name()='item']/@id").value;
+					var showError = true;
+					if (CheckPermissionToLock(id, type)) {
+						var action = showLockItemDialog(id, type);
+						if (action == "btnUnlock") {
+							if (unlockItem(id, type)) {
+								completeActivity(mode);
+							}
+						}
+						showError = false;
+					}
+					if (showError) {
+						top.aras.AlertError(res, undefined, undefined, window);
+					}
+				}
+				else {
+					top.aras.AlertError(res, undefined, undefined, window);
+				}
+			}
+			else {
+				if (mode == "save") {
+					top.aras.itemsCache.deleteItem(MyAssID);
+					if (needForClearItem) {
+						top.aras.itemsCache.deleteItem(itemId);
+					}
+				}
+				if (window.onCompleteHandler){
+					window.onCompleteHandler(mode);
+				}
+
+				closeDialog();
+			}
+		}
+
+		function CheckPermissionToLock(id, type) {
+			if (!top.aras.isAdminUser()) {
+				//false if temp node of is not locked by current user.
+				var itemNd = top.aras.getItemById(type, id);
+				return top.aras.isLockedByUser(itemNd);
+			}
+			return true;
+		}
+
+		function unlockItem(id, type) {
+			var win = top.aras.uiFindWindowEx(id);
+			if (win) {
+				return win.document.frames["tearoff_menu"].onClickMenuItem("unlock");
+			}
+			else {
+				var item = top.aras.unlockItem(id, type);
+				if (!item) {
+					return false;
+				}
+			}
+			return true;
+		}
+
+		function showLockItemDialog(id, type) {
+			var itemType = top.aras.getItemTypeForClient(type, "name");
+			var itemTypeLabel = itemType.getProperty("label");
+			var keyedName = top.aras.getKeyedName(id, type);
+			var unlockDlgParams = {};
+			unlockDlgParams.aras = top.aras;
+			unlockDlgParams.title = top.aras.getResource("", "inbasketvd.unlock_dialog_title", itemTypeLabel);
+			unlockDlgParams.message = top.aras.getResource("", "inbasketvd.unlock_dialog_message", itemTypeLabel, keyedName);
+			unlockDlgParams.buttons = {
+				btnUnlock: top.aras.getResource("", "common.unlock"),
+				btnCancel: top.aras.getResource("", "common.cancel")
+			};
+			unlockDlgParams.defaultButton = "btnCancel";
+			var options = {
+				dialogHeight: 150,
+				dialogWidth: 450
+			};
+			return top.aras.modalDialogHelper.show("DefaultModal", window, unlockDlgParams, options, "groupChgsDialog.html");
+		}
+	</script>
+	</head>
+	<body class="claro">
+	<div class="dialogContainer">
+		<div id="TitleSection" class="logicalSection">
+			<font style="font-family: Arial, Helvetica, sans-serif; font-size: 12pt"><b aras_ui_resource_key="inbasketvd.workflow_activity_completion"></b></font>
+			<div style="text-align: center; height: 8px">
+				<div style="vertical-align: middle; display: inline-block; height: 1px; width: 180px; background: #D4D4D4;"></div> 
+			</div>
+			<table width="100%" cellpadding="0" cellspacing="0" cols="2">
+				<tr>
+					<td align="right" width="50%" class="logicalSubSection" style="padding-right: 5px">
+						<b aras_ui_resource_key="inbasketvd.workflow"></b>
+					</td>
+					<td id="WorkflowNameCell" align="left" class="logicalSubSection">
+					</td>
+				</tr>
+				<tr>
+					<td align="right" width="50%" style="padding-right: 5px">
+						<b aras_ui_resource_key="inbasketvd.activity"></b>
+					</td>
+					<td id="ActivityLabelCell" align="left">
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div id="TasksSection" class="logicalSection">
+			<fieldset>
+				<legend aras_ui_resource_key="inbasketvd.tasks"></legend>
+				<div id="gridTD" style="height: 100px;">
+				</div>
+			</fieldset>
+		</div>
+		<div id="VariablesSection" class="logicalSection">
+			<fieldset>
+				<legend aras_ui_resource_key="inbasketvd.variables"></legend>
+				<div style="max-height: 100px; overflow: auto;">
+					<table id="VariablesTable" cellpadding="0" cellspacing="0" border="0">
+					</table>
+				</div>
+			</fieldset>
+		</div>
+		<div id="VoteSection" class="logicalSection">
+			<fieldset>
+				<legend aras_ui_resource_key="inbasketvd.vote"></legend>
+				<table cellpadding="0" border="0" cellspacing="0" width="100%" cols="4">
+					<tr>
+						<td align="right">
+							<b aras_ui_resource_key="inbasketvd.vote_with_colon"></b>&nbsp;
+						</td>
+							<td>
+							<div id="div_select_VoteList" class="sys_f_div_select">
+							<select id="VoteList" class="sys_f_select" size="1" width="20" onchange="onChangeVote();">
+							</select>
+							<span id="selected_option_VoteList" class="sys_f_span_select"></div>
+						</td>
+						<td align="right">
+							<b aras_ui_resource_key="inbasketvd.delegate_to"></b>&nbsp;
+						</td>
+						<td>
+							<input type="text" id="delegate" size="30" class="dynamicBkColor" onkeydown="delegateOnKeydown(event)" onfocusout="doSearchIdentity()" />
+							<img id="delegate_img" align="absmiddle" src="../../images/Ellipsis.svg" style="width: auto; height: auto; max-height: 18px; max-width: 18px; display: inline; cursor: pointer;" onclick="delegateClick()" />
+						</td>
+					</tr>
+					<tr>
+						<td align="right" class="logicalSubSection2">
+							<br />
+							<b aras_ui_resource_key="inbasketvd.comments"></b>&nbsp;<br />
+						</td>
+						<td colspan="3" class="logicalSubSection2">
+							<textarea id="Comments" style="overflow:auto; width:415px; height:30px; resize:none; border:1px solid #808080"></textarea>
+						</td>
+					</tr>
+				</table>
+			</fieldset>
+		</div>
+		<div id="AuthSection" class="logicalSection" align="center">
+			<fieldset>
+				<legend aras_ui_resource_key="inbasketvd.authentication"></legend>
+				<%=GetHtmlForUI(1)%>
+			</fieldset>
+		</div>
+		<div id="ButtonSection" class="logicalSubSection" align="center" style="padding-bottom: 15px;"> 
+			<input type="button" class="btn" id="completeButton" name="Complete" aras_ui_resource_key="inbasketvd.complete_html_value" onclick="doComplete()" />
+			<input type="button" class="btn" id="saveButtom" name="Save" aras_ui_resource_key="inbasketvd.save_changes_html_value" style="margin-left: 10px" onclick="saveChanges()" />
+			<input type="button" class="btn" id="AssignmentButton" name="Assignment" aras_ui_resource_key="inbasketvd.assignment_html_value" style="margin-left: 10px" onclick="settingAssignment()" />
+			<input type="button" class="btn cancel_button" name="Cancel" aras_ui_resource_key="inbasketvd.cancel_html_value" style="margin-left: 10px" onclick="cancelVote()" />
+		</div>
+	</div>
+	<script type="text/javascript">
+		PopulateDocByLabels();
+	</script>
+</body>
+</html>

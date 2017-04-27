@@ -1,0 +1,142 @@
+﻿<AML>
+ <Item type="ItemType" id="3EEAB6D10D5042938F12DC5ADB531D7B" action="add">
+  <allow_private_permission>1</allow_private_permission>
+  <auto_search>0</auto_search>
+  <enforce_discovery>1</enforce_discovery>
+  <hide_where_used>0</hide_where_used>
+  <implementation_type>table</implementation_type>
+  <instance_data>EXT_WORKFLOW_ASSIGNDTAIL</instance_data>
+  <is_dependent>0</is_dependent>
+  <is_relationship>0</is_relationship>
+  <is_versionable>0</is_versionable>
+  <label xml:lang="en">Workflow_AssignDtail</label>
+  <label_plural xml:lang="en">Workflow_AssignDtail</label_plural>
+  <large_icon>../Images/WorkflowMapPath.svg</large_icon>
+  <open_icon>../Images/WorkflowMapPath.svg</open_icon>
+  <revisions keyed_name="Default" type="Revision">7FE395DD8B9F4E1090756A34B733D75E</revisions>
+  <show_parameters_tab>0</show_parameters_tab>
+  <structure_view>tab view</structure_view>
+  <unlock_on_logout>0</unlock_on_logout>
+  <use_src_access>0</use_src_access>
+  <name>Ext_Workflow_AssignDtail</name>
+  <Relationships>
+   <Item type="Property" id="0F1B6A5C9F644ADBAE1BE44283C3C52A" action="add">
+    <column_alignment>left</column_alignment>
+    <data_source keyed_name="Activity" type="ItemType" name="Activity">937CE47DE2854308BE6FF5AB1CFB19D4</data_source>
+    <data_type>item</data_type>
+    <is_hidden>0</is_hidden>
+    <is_hidden2>0</is_hidden2>
+    <is_indexed>0</is_indexed>
+    <is_keyed>0</is_keyed>
+    <is_multi_valued>0</is_multi_valued>
+    <is_required>0</is_required>
+    <item_behavior>float</item_behavior>
+    <label xml:lang="en">Ext activity</label>
+    <range_inclusive>0</range_inclusive>
+    <readonly>0</readonly>
+    <sort_order>10</sort_order>
+    <source_id keyed_name="Ext_Workflow_AssignDtail" type="ItemType" name="Ext_Workflow_AssignDtail">3EEAB6D10D5042938F12DC5ADB531D7B</source_id>
+    <track_history>0</track_history>
+    <name>ext_activity</name>
+   </Item>
+   <Item type="Property" id="707578E871BB4092AB2F41ABA3074A4E" action="add">
+    <column_alignment>left</column_alignment>
+    <data_type>string</data_type>
+    <is_hidden>1</is_hidden>
+    <is_hidden2>1</is_hidden2>
+    <is_indexed>0</is_indexed>
+    <is_keyed>0</is_keyed>
+    <is_multi_valued>0</is_multi_valued>
+    <is_required>0</is_required>
+    <label xml:lang="en">ext_config_key</label>
+    <range_inclusive>0</range_inclusive>
+    <readonly>0</readonly>
+    <sort_order>50</sort_order>
+    <source_id keyed_name="Ext_Workflow_AssignDtail" type="ItemType" name="Ext_Workflow_AssignDtail">3EEAB6D10D5042938F12DC5ADB531D7B</source_id>
+    <stored_length>64</stored_length>
+    <track_history>0</track_history>
+    <name>ext_config_key</name>
+   </Item>
+   <Item type="Property" id="11409484412E49389E1CFBAEDB0F9BC5" action="add">
+    <column_alignment>left</column_alignment>
+    <data_type>string</data_type>
+    <is_hidden>1</is_hidden>
+    <is_hidden2>1</is_hidden2>
+    <is_indexed>0</is_indexed>
+    <is_keyed>0</is_keyed>
+    <is_multi_valued>0</is_multi_valued>
+    <is_required>0</is_required>
+    <label xml:lang="en">ext_identity_id</label>
+    <range_inclusive>0</range_inclusive>
+    <readonly>0</readonly>
+    <sort_order>50</sort_order>
+    <source_id keyed_name="Ext_Workflow_AssignDtail" type="ItemType" name="Ext_Workflow_AssignDtail">3EEAB6D10D5042938F12DC5ADB531D7B</source_id>
+    <stored_length>1024</stored_length>
+    <track_history>0</track_history>
+    <name>ext_identity_id</name>
+   </Item>
+   <Item type="Property" id="74EDA897D3F646998FB84142CECDF876" action="add">
+    <column_alignment>left</column_alignment>
+    <data_type>string</data_type>
+    <is_hidden>0</is_hidden>
+    <is_hidden2>0</is_hidden2>
+    <is_indexed>0</is_indexed>
+    <is_keyed>0</is_keyed>
+    <is_multi_valued>0</is_multi_valued>
+    <is_required>0</is_required>
+    <label xml:lang="en">Ext dentity string</label>
+    <range_inclusive>0</range_inclusive>
+    <readonly>0</readonly>
+    <sort_order>20</sort_order>
+    <source_id keyed_name="Ext_Workflow_AssignDtail" type="ItemType" name="Ext_Workflow_AssignDtail">3EEAB6D10D5042938F12DC5ADB531D7B</source_id>
+    <stored_length>1024</stored_length>
+    <track_history>0</track_history>
+    <name>ext_identity_string</name>
+   </Item>
+   <Item type="View" id="52E7A340080945DA9572E0640784A583" action="add">
+    <client>js</client>
+    <related_id keyed_name="Ext_Workflow_AssignDtail" type="Form">1661E27AC3C64320B8503BFDBDA17FD3</related_id>
+    <role keyed_name="World" type="Identity">
+     <Item type="Identity" action="get" select="id">
+      <name>World</name>
+     </Item>
+    </role>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Ext_Workflow_AssignDtail" type="ItemType" name="Ext_Workflow_AssignDtail">3EEAB6D10D5042938F12DC5ADB531D7B</source_id>
+    <type>default</type>
+   </Item>
+   <Item type="Server Event" id="69B897DEB3E74783871E0B05D591C421" action="add">
+    <related_id keyed_name="Ext_Update_identity_string" type="Method">
+     <Item type="Method" action="get" select="id">
+      <name>Ext_Update_identity_string</name>
+     </Item>
+    </related_id>
+    <server_event>onAfterAdd</server_event>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Ext_Workflow_AssignDtail" type="ItemType" name="Ext_Workflow_AssignDtail">3EEAB6D10D5042938F12DC5ADB531D7B</source_id>
+   </Item>
+   <Item type="Server Event" id="2CC26D3658AE4452922DDA639F044170" action="add">
+    <related_id keyed_name="Ext_Update_identity_string" type="Method">
+     <Item type="Method" action="get" select="id">
+      <name>Ext_Update_identity_string</name>
+     </Item>
+    </related_id>
+    <server_event>onAfterUpdate</server_event>
+    <sort_order>256</sort_order>
+    <source_id keyed_name="Ext_Workflow_AssignDtail" type="ItemType" name="Ext_Workflow_AssignDtail">3EEAB6D10D5042938F12DC5ADB531D7B</source_id>
+   </Item>
+   <Item type="Can Add" id="700D84FB97894F27852203A45488ECA6" action="add">
+    <can_add>1</can_add>
+    <related_id keyed_name="Administrators" type="Identity">2618D6F5A90949BAA7E920D1B04C7EE1</related_id>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Ext_Workflow_AssignDtail" type="ItemType" name="Ext_Workflow_AssignDtail">3EEAB6D10D5042938F12DC5ADB531D7B</source_id>
+   </Item>
+   <Item type="Allowed Permission" id="3F0684B3B5694684A6664D6056AC73CF" action="add">
+    <is_default>1</is_default>
+    <related_id keyed_name="Ext_Workflow_Assignment" type="Permission">8959F94E27B1453A9E57E57548572BCC</related_id>
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Ext_Workflow_AssignDtail" type="ItemType" name="Ext_Workflow_AssignDtail">3EEAB6D10D5042938F12DC5ADB531D7B</source_id>
+   </Item>
+  </Relationships>
+ </Item>
+</AML>

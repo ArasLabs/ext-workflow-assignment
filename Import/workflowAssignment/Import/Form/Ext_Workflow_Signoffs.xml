@@ -1,0 +1,138 @@
+﻿<AML>
+ <Item type="Form" id="738DE7AC328C41D2ACA1C3667B325941" action="add">
+  <category_form>0</category_form>
+  <height>234</height>
+  <stylesheet><![CDATA[../styles/default.css]]></stylesheet>
+  <width>699</width>
+  <name>Ext_Workflow_Signoffs</name>
+  <Relationships>
+   <Item type="Body" id="2B751BC6AACE40499C1A1E1586491001" action="add">
+    <sort_order>128</sort_order>
+    <source_id keyed_name="Ext_Workflow_Signoffs" type="Form">738DE7AC328C41D2ACA1C3667B325941</source_id>
+    <Relationships>
+     <Item type="Field" id="54FC81954B604E4FA600414FC6677B50" action="add">
+      <border_width>0</border_width>
+      <display_length_unit>px</display_length_unit>
+      <field_type>html</field_type>
+      <font_color>#000000</font_color>
+      <font_family>tahoma, arial, helvetica, sans-serif</font_family>
+      <font_size>8pt</font_size>
+      <font_weight>bold</font_weight>
+      <html_code><![CDATA[<script>
+var Core_reportHTML = "<table/>";
+var wfProcessId ="";
+function Core_loadProcessReport()
+{
+  if (!document.item || !document.item.xml) return;
+  var reportHTML;
+
+  if (document.item.getAttribute("action")=="add")
+  {
+    reportHTML = top.aras.getResource("", "imports_core.no_workflow_signoffs_exist");
+  }
+  else
+  {
+    var q = new top.Item("tmp", "tmp");
+    q.loadAML("<Item type='Workflow' action='get' select='related_id(*)'>"+
+                "<source_id>"+document.item.getAttribute("id")+"</source_id>"+
+                "<related_id condition='is not null'/>"+
+              "</Item>");
+    q = q.apply();
+    if (q.getItemCount()==1)
+    {
+      var processItem = q.getItemByIndex(0).node.selectSingleNode("related_id/Item");
+	  wfProcessId = q.getItemByIndex(0).getProperty("related_id","");
+      processItem.setAttribute("item_id_for_vote_now_link", document.item.getAttribute("id"));
+      var report = top.aras.getItemByKeyedName("Report", "Workflow Process History");
+      reportHTML = top.aras.runClientReport(report, "", processItem);
+      reportHTML = reportHTML.replace(/width=""/g, "");
+      reportHTML = reportHTML.replace(/height=""/g, "");
+    }
+    else
+    {
+      reportHTML = q.getErrorDetail() +"<br>"+ q.getErrorString() +"<br>"+ q.getErrorSource();
+    }
+  }
+  Core_reportHTML = reportHTML;
+
+  var ifr = document.getElementById("result_iframe_frame");
+  var d = ifr.contentWindow.document.open();
+  d.write(reportHTML);
+  d.close();
+  ifr.style.visibility = "visible";
+}
+
+window.attachEvent("onload", Core_loadProcessReport);
+window.attachEvent("onload", expression_WorkflowSignoffs_setExpression);
+window.attachEvent("onresize", expression_WorkflowSignoffs_setExpression);
+
+function expression_WorkflowSignoffs_setExpression()
+{
+  document.body.scroll = "no";
+  var field = document.getElementById('result_iframe_frame');
+	
+  var isIE7 = (top.aras.Browser.version == 7);
+
+  field.width = isIE7? document.body.clientWidth+16 : document.body.clientWidth;
+  field.height = document.documentElement.clientHeight-25;
+  //field.height = document.body.clientHeight-25;
+}
+
+function showWorkflowProcess()
+{
+  if (wfProcessId !== "")
+  {
+    top.aras.uiShowItem("Workflow Process", wfProcessId);
+  }
+}
+
+</script>
+<button type="button" onclick="showWorkflowProcess();" style="background-color:white;border:none;cursor:pointer;">
+  <img src="../cbin/icons/20x15_workflow.gif" border='0' TITLE = "Show Workflow Process">
+</button>
+&nbsp;
+<button type="button" onclick="top.aras.saveString2File(Core_reportHTML, 'export2Excel');" style="background-color:white;border:none;cursor:pointer;">
+  <img src="../cbin/icons/16x16_icon_msExcel.gif" border='0' TITLE = "Export To Excel">
+</button>
+&nbsp;
+<button type="button" onclick="top.aras.saveString2File(Core_reportHTML, 'export2Word');" style="background-color:white;border:none;cursor:pointer;">
+  <img src="../cbin/icons/16x16_icon_msWord.gif" border='0' TITLE = "Export To Word">
+</button>]]></html_code>
+      <is_disabled>0</is_disabled>
+      <is_visible>1</is_visible>
+      <label_position>top</label_position>
+      <list_no_blank>0</list_no_blank>
+      <positioning>absolute</positioning>
+      <sort_order>128</sort_order>
+      <source_id keyed_name="2B751BC6AACE40499C1A1E1586491001" type="Body">2B751BC6AACE40499C1A1E1586491001</source_id>
+      <tab_stop>1</tab_stop>
+      <x>2</x>
+      <y>0</y>
+      <name>calculate_html</name>
+     </Item>
+     <Item type="Field" id="1BEC72A918C74DD98E8A13A6E3F5D087" action="add">
+      <border_width>0</border_width>
+      <display_length_unit>px</display_length_unit>
+      <field_type>html</field_type>
+      <font_color>#000000</font_color>
+      <font_family>tahoma, arial, helvetica, sans-serif</font_family>
+      <font_size>8pt</font_size>
+      <font_weight>bold</font_weight>
+      <html_code><![CDATA[<iframe id="result_iframe_frame" frameborder="0"></iframe>]]></html_code>
+      <is_disabled>0</is_disabled>
+      <is_visible>1</is_visible>
+      <label_position>right</label_position>
+      <list_no_blank>0</list_no_blank>
+      <positioning>absolute</positioning>
+      <sort_order>256</sort_order>
+      <source_id keyed_name="2B751BC6AACE40499C1A1E1586491001" type="Body">2B751BC6AACE40499C1A1E1586491001</source_id>
+      <tab_stop>1</tab_stop>
+      <x>0</x>
+      <y>25</y>
+      <name>result_iframe</name>
+     </Item>
+    </Relationships>
+   </Item>
+  </Relationships>
+ </Item>
+</AML>

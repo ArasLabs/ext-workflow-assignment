@@ -1,0 +1,8 @@
+<export>
+  <Item keyed_name="Ext_Workflow_ADtail Identity" config_id="2FE427DC70CC475DA1CCBAB5956BD0E4">
+    <property __name="label" ja="アサインメント" />
+  </Item>
+  <Item keyed_name="Ext_Workflow_Assign Activity" config_id="149B94ECD72246DFB45F7A462B2F1B8E">
+    <property __name="label" ja="アサインメント" />
+  </Item>
+</export>

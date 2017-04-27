@@ -1,0 +1,36 @@
+﻿<AML>
+ <Item type="Method" id="B0A83698EE094C368513947CA9AEE8FE" action="add">
+  <execution_allowed_to keyed_name="World" type="Identity">A73B655731924CD0B027E4F4D5FCC0A9</execution_allowed_to>
+  <method_code><![CDATA[
+            #region Aras Innovator Method本体
+
+            StringBuilder sql = new StringBuilder();
+            Item result = this.newItem();
+            Innovator inn = this.getInnovator();
+
+            //パラメータの取得
+            string target_id = this.getProperty("TargetItemID","");
+
+            //ワークフローアサインメントのアイテムタイプを取得
+            sql.Append("select ewa.id as workflow_assignment_id from innovator.[WORKFLOW] w  ");
+            sql.Append(" inner join innovator.[WORKFLOW_PROCESS] wp ");
+            sql.Append("  on w.RELATED_ID = wp.ID ");
+            sql.Append(" inner join innovator.[EXT_WORKFLOW_ASSIGNMENT] ewa ");
+            sql.Append("  on wp.ID = ewa.EXT_WORKFLOW_PROCESS ");
+            sql.Append(" where w.SOURCE_ID = '");
+		    sql.Append(target_id);
+		    sql.Append("' and w.IS_CURRENT = '1' ");
+   
+            //CCO.Utilities.WriteDebug("test", "sql:" + sql.ToString());
+            result = inn.applySQL(sql.ToString());
+			if(result.isError()){
+				return inn.newError("Faile getting workflow_assignment_id.");
+			}
+            //CCO.Utilities.WriteDebug("test", "result:" + result.ToString());
+            return result;
+
+            #endregion]]></method_code>
+  <method_type>C#</method_type>
+  <name>Ext_get_Workflow_Assignment_ID</name>
+ </Item>
+</AML>
